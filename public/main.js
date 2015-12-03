@@ -83,21 +83,9 @@ var ChatClient = React.createClass({
 
 	createChatroom: function() {
     var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
-		// random unique id generator
-		var guid = function guid() {
-		  function s4() {
-		    return Math.floor((1 + Math.random()) * 0x10000)
-		      .toString(16)
-		      .substring(1);
-		  }
-		  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-		    s4() + '-' + s4() + s4() + s4();
-		}
-
 		var newPostRef = this.firebaseRefs.fireBaseChatroomData.push({
 			owner: facebookAuth.facebook.displayName,
 			userId: facebookAuth.facebook.id,
-			chatRoomId: guid(),
 		})
 
 		// var key = newPostRef.key()
@@ -137,6 +125,7 @@ var CreateChat = React.createClass({
 
 	handleCreateChatButton: function() {
 		var that = this;
+		// random unique id generator
 		$('#create-chat').click(function(event) {
 			that.props.createChatroom();
 		});
@@ -161,8 +150,9 @@ var ChatroomList = React.createClass({
 		};
 
 		var chatroomNodes = this.props.chatRoomListData.map(function(chatRoom, i) {
+			var accessId = chatRoom['.key']
 			return (
-				<ChatroomListItem owner={chatRoom.owner} chatRoomId={chatRoom.chatRoomId} key={i} />
+				<ChatroomListItem owner={chatRoom.owner} accessId={accessId} key={i} />
 			);
 		});
 
@@ -180,7 +170,7 @@ var ChatroomListItem = React.createClass({
 	render: function() {
 		return (
 			<div className="chatRoomListItem">
-				<ModalView owner={this.props.owner} chatRoomId={this.props.chatRoomId}/>
+				<ModalView owner={this.props.owner} accessId={this.props.accessId} />
 			</div>
 		);
 	}
@@ -214,14 +204,14 @@ var ModalView = React.createClass({
 		};
     return (
       <div>
-        <button onClick={this.openModal}>{this.props.owner} {this.props.chatRoomId}</button>
+        <button onClick={this.openModal}>{this.props.owner} {this.props.accessId}</button>
         <Modal
           isOpen={this.state.modalIsOpen}
           onRequestClose={this.closeModal}
           style={customStyles} >
 
           <button onClick={this.closeModal}>close</button>
-          <Chatroom owner={this.props.owner} chatRoomId={this.props.chatRoomId}/>
+          <Chatroom owner={this.props.owner} accessId={this.props.accessId} />
         </Modal>
       </div>
     );
@@ -233,7 +223,7 @@ var ModalView = React.createClass({
 var Chatroom = React.createClass({
 	mixins: [ReactFireMixin],
   getMessages: function() {
-    var ref = new Firebase("https://tizzite-chat.firebaseio.com/message-history/" + this.props.chatRoomId) 
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/" + this.props.accessId + "/messages") 
     this.bindAsArray(ref, "fireBaseMessageData");
   },
 
