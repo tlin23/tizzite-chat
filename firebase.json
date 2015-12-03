@@ -1,0 +1,9 @@
+{
+  "firebase": "tizzite-chat",
+  "public": "public",
+  "ignore": [
+    "firebase.json",
+    "**/.*",
+    "**/node_modules/**"
+  ]
+}
