@@ -42,7 +42,6 @@ var ChatClient = React.createClass({
 	},
 
 	setCurrentUserAndId: function() {
-		console.log(this.firebaseRefs)
 		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
 		var currentUsername =	facebookAuth.facebook.displayName;
 		var currentUserId = facebookAuth.facebook.id;
@@ -129,7 +128,7 @@ var ChatClient = React.createClass({
 				<FacebookAuthButton />
 				<CreateChatButton createChatroom={this.createChatroom} />
 				<CreateEventModalView createEvent={this.createEvent} owner={this.state.currentUsername} ownerId={this.state.currentUserId}/>
-				<EventsList eventsListData={this.state.firebaseEventsData} />
+				<EventsList eventsListData={this.state.firebaseEventsData} currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId} />
 				<ChatroomList chatRoomListData={this.state.firebaseChatroomData}/>
 			</div>
 		);
@@ -206,7 +205,7 @@ var CreateEventForm = React.createClass({
 	}
 })
 
-var MyEventModalView = React.createClass({
+var EventModalView = React.createClass({
 	getInitialState: function() {
 		return {modalIsOpen: false};
 	},
@@ -230,19 +229,52 @@ var MyEventModalView = React.createClass({
 		    transform             : 'translate(-50%, -50%)'
 		  }
 		};
-    return (
-      <div>
-        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
-        <Modal
-          isOpen={this.state.modalIsOpen}
-          style={customStyles} >
+		if (this.props.currentUserId == this.props.ownerId) {
+	    return (
+	      <div className='eventModalView'>
+	        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
+	        <Modal
+	          isOpen={this.state.modalIsOpen}
+	          style={customStyles} >
 
-          <button onClick={this.closeModal}>close</button>
-          <MyEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
-        </Modal>
-      </div>
-    );
+	          <button onClick={this.closeModal}>close</button>
+	          <MyEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+	        </Modal>
+	      </div>
+	    );
+		} else {
+			return (
+				<div className='eventModalView'>
+	        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
+	        <Modal
+	          isOpen={this.state.modalIsOpen}
+	          style={customStyles} >
+
+	          <button onClick={this.closeModal}>close</button>
+	          <GoerEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+	        </Modal>
+				</div>
+			)
+		}
   }
+})
+
+var GoerEventDescription = React.createClass({
+	render: function() {
+		return (
+			<div className="goerEventDescription">
+				I AM NOT THE OWNER!!!
+				<br/>
+				{this.props.owner}
+				<br/>
+				{this.props.ownerId}
+				<br/>
+				{this.props.eventName}
+				<br/>
+				{this.props.eventDesc}
+			</div>
+		)
+	}
 })
 
 var MyEventDescription = React.createClass({
@@ -302,15 +334,17 @@ var CreateChatButton = React.createClass({
 
 var EventsList = React.createClass({
 	render: function() {
+		var that = this;
 		var inlineStyles = {
 			height: '300px',
 			overflowY: 'scroll'
 		};
 
+		// console.log(this.props.currentUsername)
 		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
 			var accessId = theEvent['.key']
 			return (
-				<EventsListItem owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
+				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
 			);
 		});
 
@@ -326,7 +360,7 @@ var EventsListItem = React.createClass({
 	render: function() {
 		return (
 			<div className="chatRoomListItem">
-				<MyEventModalView owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+				<EventModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
 			</div>
 		);
 	}

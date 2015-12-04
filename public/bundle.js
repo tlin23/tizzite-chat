@@ -20678,7 +20678,6 @@ var ChatClient = React.createClass({
 	},
 
 	setCurrentUserAndId: function () {
-		console.log(this.firebaseRefs);
 		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
 		var currentUsername = facebookAuth.facebook.displayName;
 		var currentUserId = facebookAuth.facebook.id;
@@ -20766,7 +20765,7 @@ var ChatClient = React.createClass({
 			React.createElement(FacebookAuthButton, null),
 			React.createElement(CreateChatButton, { createChatroom: this.createChatroom }),
 			React.createElement(CreateEventModalView, { createEvent: this.createEvent, owner: this.state.currentUsername, ownerId: this.state.currentUserId }),
-			React.createElement(EventsList, { eventsListData: this.state.firebaseEventsData }),
+			React.createElement(EventsList, { eventsListData: this.state.firebaseEventsData, currentUsername: this.state.currentUsername, currentUserId: this.state.currentUserId }),
 			React.createElement(ChatroomList, { chatRoomListData: this.state.firebaseChatroomData })
 		);
 	}
@@ -20877,8 +20876,8 @@ var CreateEventForm = React.createClass({
 	}
 });
 
-var MyEventModalView = React.createClass({
-	displayName: 'MyEventModalView',
+var EventModalView = React.createClass({
+	displayName: 'EventModalView',
 
 	getInitialState: function () {
 		return { modalIsOpen: false };
@@ -20903,31 +20902,80 @@ var MyEventModalView = React.createClass({
 				transform: 'translate(-50%, -50%)'
 			}
 		};
-		return React.createElement(
-			'div',
-			null,
-			React.createElement(
-				'button',
-				{ onClick: this.openModal },
-				'Planner: ',
-				this.props.owner,
-				' ',
-				React.createElement('br', null),
-				' Event ID: ',
-				this.props.accessId
-			),
-			React.createElement(
-				Modal,
-				{
-					isOpen: this.state.modalIsOpen,
-					style: customStyles },
+		if (this.props.currentUserId == this.props.ownerId) {
+			return React.createElement(
+				'div',
+				{ className: 'eventModalView' },
 				React.createElement(
 					'button',
-					{ onClick: this.closeModal },
-					'close'
+					{ onClick: this.openModal },
+					'Planner: ',
+					this.props.owner,
+					' ',
+					React.createElement('br', null),
+					' Event ID: ',
+					this.props.accessId
 				),
-				React.createElement(MyEventDescription, { owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
-			)
+				React.createElement(
+					Modal,
+					{
+						isOpen: this.state.modalIsOpen,
+						style: customStyles },
+					React.createElement(
+						'button',
+						{ onClick: this.closeModal },
+						'close'
+					),
+					React.createElement(MyEventDescription, { owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+				)
+			);
+		} else {
+			return React.createElement(
+				'div',
+				{ className: 'eventModalView' },
+				React.createElement(
+					'button',
+					{ onClick: this.openModal },
+					'Planner: ',
+					this.props.owner,
+					' ',
+					React.createElement('br', null),
+					' Event ID: ',
+					this.props.accessId
+				),
+				React.createElement(
+					Modal,
+					{
+						isOpen: this.state.modalIsOpen,
+						style: customStyles },
+					React.createElement(
+						'button',
+						{ onClick: this.closeModal },
+						'close'
+					),
+					React.createElement(GoerEventDescription, { owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+				)
+			);
+		}
+	}
+});
+
+var GoerEventDescription = React.createClass({
+	displayName: 'GoerEventDescription',
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'goerEventDescription' },
+			'I AM NOT THE OWNER!!!',
+			React.createElement('br', null),
+			this.props.owner,
+			React.createElement('br', null),
+			this.props.ownerId,
+			React.createElement('br', null),
+			this.props.eventName,
+			React.createElement('br', null),
+			this.props.eventDesc
 		);
 	}
 });
@@ -21007,14 +21055,16 @@ var EventsList = React.createClass({
 	displayName: 'EventsList',
 
 	render: function () {
+		var that = this;
 		var inlineStyles = {
 			height: '300px',
 			overflowY: 'scroll'
 		};
 
+		// console.log(this.props.currentUsername)
 		var eventsNodes = this.props.eventsListData.map(function (theEvent, i) {
 			var accessId = theEvent['.key'];
-			return React.createElement(EventsListItem, { owner: theEvent.owner, ownerId: theEvent.ownerId, eventName: theEvent.eventName, eventDesc: theEvent.eventDesc, accessId: accessId, key: i });
+			return React.createElement(EventsListItem, { currentUsername: that.props.currentUsername, currentUserId: that.props.currentUserId, owner: theEvent.owner, ownerId: theEvent.ownerId, eventName: theEvent.eventName, eventDesc: theEvent.eventDesc, accessId: accessId, key: i });
 		});
 
 		return React.createElement(
@@ -21032,7 +21082,7 @@ var EventsListItem = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'chatRoomListItem' },
-			React.createElement(MyEventModalView, { owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+			React.createElement(EventModalView, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
 		);
 	}
 });
