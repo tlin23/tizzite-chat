@@ -11,27 +11,51 @@ var ChatClient = React.createClass({
 
 	getInitialState: function() {
 		return {
-			fireBaseChatroomData: []
+			firebaseChatroomData: [],
+			firebaseEventsData: [],
+			currentUsername: '',
+			currentUserId: '' 
 		};
 	},
 
 	componentDidMount: function() {
 		this.getChatrooms();
+		this.getEvents();
+		this.getFacebookAuth();
 		this.handleFacebook();
 		this.handleLoginButton();
 	},
 
 	getChatrooms: function() {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/")
-		this.bindAsArray(ref, "fireBaseChatroomData");
+		this.bindAsArray(ref, "firebaseChatroomData");
+	},
+
+	getEvents: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/")
+		this.bindAsArray(ref, "firebaseEventsData");
+	},
+
+	getFacebookAuth: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/");
+    this.bindAsObject(ref, "facebookRef");
+	},
+
+	setCurrentUserAndId: function() {
+		console.log(this.firebaseRefs)
+		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
+		var currentUsername =	facebookAuth.facebook.displayName;
+		var currentUserId = facebookAuth.facebook.id;
+		this.setState({currentUsername: currentUsername});
+		this.setState({currentUserId: currentUserId});
 	},
 
   handleFacebook: function(){
-    var ref = new Firebase("https://tizzite-chat.firebaseio.com/");
-    this.bindAsObject(ref, "facebookRef")
+  	var that = this;
     var authData = this.firebaseRefs.facebookRef.getAuth();
     var authDataCallback = function authDataCallback(authData) {
       if (authData) {
+      	that.setCurrentUserAndId();
         console.log("User " + authData.uid + " is logged in with " + authData.provider);
         $('#fblogin-button').hide()
         $('#fblogout-button').show()
@@ -42,7 +66,7 @@ var ChatClient = React.createClass({
       }
     }
 
-    ref.onAuth(authDataCallback);
+    this.firebaseRefs.facebookRef.onAuth(authDataCallback);
   },
 
   handleLoginButton: function() {
@@ -81,13 +105,20 @@ var ChatClient = React.createClass({
 	  });
   },
 
-	createChatroom: function() {
-    var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
-		var newPostRef = this.firebaseRefs.fireBaseChatroomData.push({
-			owner: facebookAuth.facebook.displayName,
-			userId: facebookAuth.facebook.id,
-		})
+  createEvent: function(eventName, eventDesc) {
+  	this.firebaseRefs.firebaseEventsData.push({
+  		owner: this.state.currentUsername,
+			ownerId: this.state.currentUserId,
+			eventName: eventName,
+			eventDesc: eventDesc
+  	})
+  },
 
+	createChatroom: function() {
+		this.firebaseRefs.firebaseChatroomData.push({
+			owner: this.state.currentUsername,
+			userId: this.state.currentUserId
+		})
 		// var key = newPostRef.key()
 		// console.log(key);
 	},
@@ -95,17 +126,145 @@ var ChatClient = React.createClass({
 	render: function() {
 		return (
 			<div className="chatClient">
-				<FaceBookAuth />
-				<CreateChat createChatroom={this.createChatroom} />
-				<ChatroomList chatRoomListData={this.state.fireBaseChatroomData}/>
+				<FacebookAuthButton />
+				<CreateChatButton createChatroom={this.createChatroom} />
+				<CreateEventModalView createEvent={this.createEvent} owner={this.state.currentUsername} ownerId={this.state.currentUserId}/>
+				<EventsList eventsListData={this.state.firebaseEventsData} />
+				<ChatroomList chatRoomListData={this.state.firebaseChatroomData}/>
 			</div>
 		);
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var CreateEventModalView = React.createClass({
+	getInitialState: function() {
+		return {modalIsOpen: false};
+	},
+
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
+
+  closeModal: function() {
+    this.setState({modalIsOpen: false});
+  },
+  render: function() {
+	  const customStyles = {
+		  content : {
+		    top                   : '50%',
+		    left                  : '50%',
+		    right                 : 'auto',
+		    bottom                : 'auto',
+		    marginRight           : '-50%',
+		    transform             : 'translate(-50%, -50%)'
+		  }
+		};
+    return (
+      <div>
+        <button onClick={this.openModal}> Create an event</button>
+        <Modal
+          isOpen={this.state.modalIsOpen}
+          style={customStyles} >
+
+          <button onClick={this.closeModal}>close</button>
+          <CreateEventForm closeModal={this.closeModal} createEvent={this.props.createEvent} owner={this.props.owner} ownerId={this.props.ownderId} />
+        </Modal>
+      </div>
+    );
+  }
+})
+
+var CreateEventForm = React.createClass({
+	componentDidMount: function() {
+		this.handleCreateEventButton();
+	},
+
+	handleCreateEventButton: function() {
+		var that = this;
+		$('#create-event').click(function() {
+			var eventName = ReactDOM.findDOMNode(that.refs.eventName).value.trim();
+			var eventDesc = ReactDOM.findDOMNode(that.refs.eventDesc).value.trim();
+			if (eventName !== '' && eventDesc !== '') {
+				that.props.createEvent(eventName, eventDesc);
+				that.props.closeModal();
+			} else {
+				alert('Please enter all fields');
+			};
+		});
+	},
+
+	render: function() {
+		return (
+			<div className='createEventForm'>
+				<p> Planner : {this.props.owner} </p>
+		    <p> Event Name : <input type='text' id='eventName' ref='eventName'></input> </p>
+		    <p> Event Description : <textarea id='eventDesc' ref='eventDesc'></textarea> </p>
+		    <button id='create-event'> Create Event </button>
+	    </div>
+    )
+	}
+})
+
+var MyEventModalView = React.createClass({
+	getInitialState: function() {
+		return {modalIsOpen: false};
+	},
+
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
+
+  closeModal: function() {
+    this.setState({modalIsOpen: false});
+  },
+
+  render: function() {
+	  const customStyles = {
+		  content : {
+		    top                   : '50%',
+		    left                  : '50%',
+		    right                 : 'auto',
+		    bottom                : 'auto',
+		    marginRight           : '-50%',
+		    transform             : 'translate(-50%, -50%)'
+		  }
+		};
+    return (
+      <div>
+        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
+        <Modal
+          isOpen={this.state.modalIsOpen}
+          style={customStyles} >
+
+          <button onClick={this.closeModal}>close</button>
+          <MyEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+        </Modal>
+      </div>
+    );
+  }
+})
+
+var MyEventDescription = React.createClass({
+	render: function() {
+		return (
+			<div className="myEventDescription">
+				{this.props.owner}
+				<br/>
+				{this.props.ownerId}
+				<br/>
+				{this.props.eventName}
+				<br/>
+				{this.props.eventDesc}
+			</div>
+		)
+	}
+})
+
+
+
 // // Facebook Log In/Out Button
-var FaceBookAuth = React.createClass({
+var FacebookAuthButton = React.createClass({
   render: function() {
     return(
 	      <div className="faceBookAuth">
@@ -118,7 +277,7 @@ var FaceBookAuth = React.createClass({
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Create Chat Button
-var CreateChat = React.createClass({
+var CreateChatButton = React.createClass({
 	componentDidMount: function() {
 		this.handleCreateChatButton();
 	},
@@ -140,6 +299,38 @@ var CreateChat = React.createClass({
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
+
+var EventsList = React.createClass({
+	render: function() {
+		var inlineStyles = {
+			height: '300px',
+			overflowY: 'scroll'
+		};
+
+		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
+			var accessId = theEvent['.key']
+			return (
+				<EventsListItem owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
+			);
+		});
+
+		return(
+			<div className="eventsList" style={inlineStyles}>
+				{eventsNodes}
+			</div>
+		)
+	}
+});
+
+var EventsListItem = React.createClass({
+	render: function() {
+		return (
+			<div className="chatRoomListItem">
+				<MyEventModalView owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+			</div>
+		);
+	}
+});
 
 // // List of Chatrooms
 var ChatroomList = React.createClass({
@@ -170,15 +361,15 @@ var ChatroomListItem = React.createClass({
 	render: function() {
 		return (
 			<div className="chatRoomListItem">
-				<ModalView owner={this.props.owner} accessId={this.props.accessId} />
+				<ChatroomModalView owner={this.props.owner} accessId={this.props.accessId} />
 			</div>
 		);
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// // Modal View
-var ModalView = React.createClass({
+// // Chatroom Modal View
+var ChatroomModalView = React.createClass({
 	getInitialState: function() {
     return { modalIsOpen: false };
   },
@@ -204,10 +395,9 @@ var ModalView = React.createClass({
 		};
     return (
       <div>
-        <button onClick={this.openModal}>{this.props.owner} {this.props.accessId}</button>
+        <button onClick={this.openModal}>Owner: {this.props.owner} <br /> Room ID: {this.props.accessId}</button>
         <Modal
           isOpen={this.state.modalIsOpen}
-          onRequestClose={this.closeModal}
           style={customStyles} >
 
           <button onClick={this.closeModal}>close</button>
@@ -227,24 +417,27 @@ var Chatroom = React.createClass({
     this.bindAsArray(ref, "fireBaseMessageData");
   },
 
+  getFacebookRef: function() {
+  	var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
+    this.bindAsObject(facebookRef, "facebookRef");
+  },
+
   sendMessage: function(message) {
     var that = this;
-    var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
-    var facebookAuth = facebookRef.getAuth();
+    var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
     this.firebaseRefs.fireBaseMessageData.push({
       msg: message,
       username: facebookAuth.facebook.displayName,
       userId: facebookAuth.facebook.id,
       profileImgUrl: facebookAuth.facebook.profileImageURL
     });
-    // this.setState({message: ""})
   },
   getInitialState: function() {
     return {fireBaseMessageData: []};
   },
   componentDidMount: function() {
+    this.getFacebookRef();
     this.getMessages();
-    this.handleFacebook
     // You can define pollInterval as a Chatroom attribute in ReactDom.render
     // This will invoke getMessages every defined interval
     // setInterval(this.getMessages, this.props.pollInterval);

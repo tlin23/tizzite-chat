@@ -20641,470 +20641,719 @@ var Modal = require('react-modal');
 // Components
 // //Chat Client
 var ChatClient = React.createClass({
-		displayName: 'ChatClient',
+	displayName: 'ChatClient',
 
-		mixins: [ReactFireMixin],
+	mixins: [ReactFireMixin],
 
-		getInitialState: function () {
-				return {
-						fireBaseChatroomData: []
-				};
-		},
+	getInitialState: function () {
+		return {
+			firebaseChatroomData: [],
+			firebaseEventsData: [],
+			currentUsername: '',
+			currentUserId: ''
+		};
+	},
 
-		componentDidMount: function () {
-				this.getChatrooms();
-				this.handleFacebook();
-				this.handleLoginButton();
-		},
+	componentDidMount: function () {
+		this.getChatrooms();
+		this.getEvents();
+		this.getFacebookAuth();
+		this.handleFacebook();
+		this.handleLoginButton();
+	},
 
-		getChatrooms: function () {
-				var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/");
-				this.bindAsArray(ref, "fireBaseChatroomData");
-		},
+	getChatrooms: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/");
+		this.bindAsArray(ref, "firebaseChatroomData");
+	},
 
-		handleFacebook: function () {
-				var ref = new Firebase("https://tizzite-chat.firebaseio.com/");
-				this.bindAsObject(ref, "facebookRef");
-				var authData = this.firebaseRefs.facebookRef.getAuth();
-				var authDataCallback = function authDataCallback(authData) {
-						if (authData) {
-								console.log("User " + authData.uid + " is logged in with " + authData.provider);
-								$('#fblogin-button').hide();
-								$('#fblogout-button').show();
-						} else {
-								console.log("User is logged out");
-								$('#fblogin-button').show();
-								$('#fblogout-button').hide();
-						}
-				};
+	getEvents: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/");
+		this.bindAsArray(ref, "firebaseEventsData");
+	},
 
-				ref.onAuth(authDataCallback);
-		},
+	getFacebookAuth: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/");
+		this.bindAsObject(ref, "facebookRef");
+	},
 
-		handleLoginButton: function () {
-				var facebookRef = this.firebaseRefs.facebookRef;
-				$('#fblogin-button').click(function () {
-						var isLoggedIn = facebookRef.getAuth();
-						if (!isLoggedIn) {
-								facebookRef.authWithOAuthPopup("facebook", function (error) {
-										if (error) {
-												alert("Login Failed!", error);
-										} else {
-												// We'll never get here, as the page will redirect on success.
-										};
-								});
-						} else {
-								console.log("Error: already logged in");
-								alert('Error: already logged in.');
-								// should never get here because login button shouldn't show up
-						};
+	setCurrentUserAndId: function () {
+		console.log(this.firebaseRefs);
+		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
+		var currentUsername = facebookAuth.facebook.displayName;
+		var currentUserId = facebookAuth.facebook.id;
+		this.setState({ currentUsername: currentUsername });
+		this.setState({ currentUserId: currentUserId });
+	},
+
+	handleFacebook: function () {
+		var that = this;
+		var authData = this.firebaseRefs.facebookRef.getAuth();
+		var authDataCallback = function authDataCallback(authData) {
+			if (authData) {
+				that.setCurrentUserAndId();
+				console.log("User " + authData.uid + " is logged in with " + authData.provider);
+				$('#fblogin-button').hide();
+				$('#fblogout-button').show();
+			} else {
+				console.log("User is logged out");
+				$('#fblogin-button').show();
+				$('#fblogout-button').hide();
+			}
+		};
+
+		this.firebaseRefs.facebookRef.onAuth(authDataCallback);
+	},
+
+	handleLoginButton: function () {
+		var facebookRef = this.firebaseRefs.facebookRef;
+		$('#fblogin-button').click(function () {
+			var isLoggedIn = facebookRef.getAuth();
+			if (!isLoggedIn) {
+				facebookRef.authWithOAuthPopup("facebook", function (error) {
+					if (error) {
+						alert("Login Failed!", error);
+					} else {
+						// We'll never get here, as the page will redirect on success.
+					};
 				});
+			} else {
+				console.log("Error: already logged in");
+				alert('Error: already logged in.');
+				// should never get here because login button shouldn't show up
+			};
+		});
 
-				$('#fblogout-button').click(function () {
-						var isLoggedIn = facebookRef.getAuth();
-						if (isLoggedIn) {
-								console.log("User " + isLoggedIn.uid + " is logged in with " + isLoggedIn.provider);
-								facebookRef.unauth();
-								$('#fblogin-button').show();
-								$('#fblogout-button').hide();
-								window.location.reload(true);
-								alert('Log out successful!');
-						} else {
-								console.log("Error: already logged out");
-								alert("Error: already logged out");
-								// should never get here because logout button shouldn't show
-						};
-				});
-		},
+		$('#fblogout-button').click(function () {
+			var isLoggedIn = facebookRef.getAuth();
+			if (isLoggedIn) {
+				console.log("User " + isLoggedIn.uid + " is logged in with " + isLoggedIn.provider);
+				facebookRef.unauth();
+				$('#fblogin-button').show();
+				$('#fblogout-button').hide();
+				window.location.reload(true);
+				alert('Log out successful!');
+			} else {
+				console.log("Error: already logged out");
+				alert("Error: already logged out");
+				// should never get here because logout button shouldn't show
+			};
+		});
+	},
 
-		createChatroom: function () {
-				var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
-				var newPostRef = this.firebaseRefs.fireBaseChatroomData.push({
-						owner: facebookAuth.facebook.displayName,
-						userId: facebookAuth.facebook.id
-				});
+	createEvent: function (eventName, eventDesc) {
+		this.firebaseRefs.firebaseEventsData.push({
+			owner: this.state.currentUsername,
+			ownerId: this.state.currentUserId,
+			eventName: eventName,
+			eventDesc: eventDesc
+		});
+	},
 
-				// var key = newPostRef.key()
-				// console.log(key);
-		},
+	createChatroom: function () {
+		this.firebaseRefs.firebaseChatroomData.push({
+			owner: this.state.currentUsername,
+			userId: this.state.currentUserId
+		});
+		// var key = newPostRef.key()
+		// console.log(key);
+	},
 
-		render: function () {
-				return React.createElement(
-						'div',
-						{ className: 'chatClient' },
-						React.createElement(FaceBookAuth, null),
-						React.createElement(CreateChat, { createChatroom: this.createChatroom }),
-						React.createElement(ChatroomList, { chatRoomListData: this.state.fireBaseChatroomData })
-				);
-		}
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'chatClient' },
+			React.createElement(FacebookAuthButton, null),
+			React.createElement(CreateChatButton, { createChatroom: this.createChatroom }),
+			React.createElement(CreateEventModalView, { createEvent: this.createEvent, owner: this.state.currentUsername, ownerId: this.state.currentUserId }),
+			React.createElement(EventsList, { eventsListData: this.state.firebaseEventsData }),
+			React.createElement(ChatroomList, { chatRoomListData: this.state.firebaseChatroomData })
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// // Facebook Log In/Out Button
-var FaceBookAuth = React.createClass({
-		displayName: 'FaceBookAuth',
+var CreateEventModalView = React.createClass({
+	displayName: 'CreateEventModalView',
 
-		render: function () {
-				return React.createElement(
-						'div',
-						{ className: 'faceBookAuth' },
-						React.createElement(
-								'button',
-								{ id: 'fblogin-button' },
-								' Facebook Sign In'
-						),
-						React.createElement(
-								'button',
-								{ id: 'fblogout-button' },
-								' Facebook Sign Out'
-						)
-				);
-		}
+	getInitialState: function () {
+		return { modalIsOpen: false };
+	},
+
+	openModal: function () {
+		this.setState({ modalIsOpen: true });
+	},
+
+	closeModal: function () {
+		this.setState({ modalIsOpen: false });
+	},
+	render: function () {
+		const customStyles = {
+			content: {
+				top: '50%',
+				left: '50%',
+				right: 'auto',
+				bottom: 'auto',
+				marginRight: '-50%',
+				transform: 'translate(-50%, -50%)'
+			}
+		};
+		return React.createElement(
+			'div',
+			null,
+			React.createElement(
+				'button',
+				{ onClick: this.openModal },
+				' Create an event'
+			),
+			React.createElement(
+				Modal,
+				{
+					isOpen: this.state.modalIsOpen,
+					style: customStyles },
+				React.createElement(
+					'button',
+					{ onClick: this.closeModal },
+					'close'
+				),
+				React.createElement(CreateEventForm, { closeModal: this.closeModal, createEvent: this.props.createEvent, owner: this.props.owner, ownerId: this.props.ownderId })
+			)
+		);
+	}
+});
+
+var CreateEventForm = React.createClass({
+	displayName: 'CreateEventForm',
+
+	componentDidMount: function () {
+		this.handleCreateEventButton();
+	},
+
+	handleCreateEventButton: function () {
+		var that = this;
+		$('#create-event').click(function () {
+			var eventName = ReactDOM.findDOMNode(that.refs.eventName).value.trim();
+			var eventDesc = ReactDOM.findDOMNode(that.refs.eventDesc).value.trim();
+			if (eventName !== '' && eventDesc !== '') {
+				that.props.createEvent(eventName, eventDesc);
+				that.props.closeModal();
+			} else {
+				alert('Please enter all fields');
+			};
+		});
+	},
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'createEventForm' },
+			React.createElement(
+				'p',
+				null,
+				' Planner : ',
+				this.props.owner,
+				' '
+			),
+			React.createElement(
+				'p',
+				null,
+				' Event Name : ',
+				React.createElement('input', { type: 'text', id: 'eventName', ref: 'eventName' }),
+				' '
+			),
+			React.createElement(
+				'p',
+				null,
+				' Event Description : ',
+				React.createElement('textarea', { id: 'eventDesc', ref: 'eventDesc' }),
+				' '
+			),
+			React.createElement(
+				'button',
+				{ id: 'create-event' },
+				' Create Event '
+			)
+		);
+	}
+});
+
+var MyEventModalView = React.createClass({
+	displayName: 'MyEventModalView',
+
+	getInitialState: function () {
+		return { modalIsOpen: false };
+	},
+
+	openModal: function () {
+		this.setState({ modalIsOpen: true });
+	},
+
+	closeModal: function () {
+		this.setState({ modalIsOpen: false });
+	},
+
+	render: function () {
+		const customStyles = {
+			content: {
+				top: '50%',
+				left: '50%',
+				right: 'auto',
+				bottom: 'auto',
+				marginRight: '-50%',
+				transform: 'translate(-50%, -50%)'
+			}
+		};
+		return React.createElement(
+			'div',
+			null,
+			React.createElement(
+				'button',
+				{ onClick: this.openModal },
+				'Planner: ',
+				this.props.owner,
+				' ',
+				React.createElement('br', null),
+				' Event ID: ',
+				this.props.accessId
+			),
+			React.createElement(
+				Modal,
+				{
+					isOpen: this.state.modalIsOpen,
+					style: customStyles },
+				React.createElement(
+					'button',
+					{ onClick: this.closeModal },
+					'close'
+				),
+				React.createElement(MyEventDescription, { owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+			)
+		);
+	}
+});
+
+var MyEventDescription = React.createClass({
+	displayName: 'MyEventDescription',
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'myEventDescription' },
+			this.props.owner,
+			React.createElement('br', null),
+			this.props.ownerId,
+			React.createElement('br', null),
+			this.props.eventName,
+			React.createElement('br', null),
+			this.props.eventDesc
+		);
+	}
+});
+
+// // Facebook Log In/Out Button
+var FacebookAuthButton = React.createClass({
+	displayName: 'FacebookAuthButton',
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'faceBookAuth' },
+			React.createElement(
+				'button',
+				{ id: 'fblogin-button' },
+				' Facebook Sign In'
+			),
+			React.createElement(
+				'button',
+				{ id: 'fblogout-button' },
+				' Facebook Sign Out'
+			)
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Create Chat Button
-var CreateChat = React.createClass({
-		displayName: 'CreateChat',
+var CreateChatButton = React.createClass({
+	displayName: 'CreateChatButton',
 
-		componentDidMount: function () {
-				this.handleCreateChatButton();
-		},
+	componentDidMount: function () {
+		this.handleCreateChatButton();
+	},
 
-		handleCreateChatButton: function () {
-				var that = this;
-				// random unique id generator
-				$('#create-chat').click(function (event) {
-						that.props.createChatroom();
-				});
-		},
+	handleCreateChatButton: function () {
+		var that = this;
+		// random unique id generator
+		$('#create-chat').click(function (event) {
+			that.props.createChatroom();
+		});
+	},
 
-		render: function () {
-				return React.createElement(
-						'div',
-						{ className: 'createChat' },
-						React.createElement(
-								'button',
-								{ id: 'create-chat' },
-								'Create Chat'
-						)
-				);
-		}
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'createChat' },
+			React.createElement(
+				'button',
+				{ id: 'create-chat' },
+				'Create Chat'
+			)
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var EventsList = React.createClass({
+	displayName: 'EventsList',
+
+	render: function () {
+		var inlineStyles = {
+			height: '300px',
+			overflowY: 'scroll'
+		};
+
+		var eventsNodes = this.props.eventsListData.map(function (theEvent, i) {
+			var accessId = theEvent['.key'];
+			return React.createElement(EventsListItem, { owner: theEvent.owner, ownerId: theEvent.ownerId, eventName: theEvent.eventName, eventDesc: theEvent.eventDesc, accessId: accessId, key: i });
+		});
+
+		return React.createElement(
+			'div',
+			{ className: 'eventsList', style: inlineStyles },
+			eventsNodes
+		);
+	}
+});
+
+var EventsListItem = React.createClass({
+	displayName: 'EventsListItem',
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'chatRoomListItem' },
+			React.createElement(MyEventModalView, { owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+		);
+	}
+});
+
 // // List of Chatrooms
 var ChatroomList = React.createClass({
-		displayName: 'ChatroomList',
+	displayName: 'ChatroomList',
 
-		render: function () {
-				var inlineStyles = {
-						height: '300px',
-						overflowY: 'scroll'
-				};
+	render: function () {
+		var inlineStyles = {
+			height: '300px',
+			overflowY: 'scroll'
+		};
 
-				var chatroomNodes = this.props.chatRoomListData.map(function (chatRoom, i) {
-						var accessId = chatRoom['.key'];
-						return React.createElement(ChatroomListItem, { owner: chatRoom.owner, accessId: accessId, key: i });
-				});
+		var chatroomNodes = this.props.chatRoomListData.map(function (chatRoom, i) {
+			var accessId = chatRoom['.key'];
+			return React.createElement(ChatroomListItem, { owner: chatRoom.owner, accessId: accessId, key: i });
+		});
 
-				return React.createElement(
-						'div',
-						{ className: 'chatRoomList', style: inlineStyles },
-						chatroomNodes
-				);
-		}
+		return React.createElement(
+			'div',
+			{ className: 'chatRoomList', style: inlineStyles },
+			chatroomNodes
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Individual Chatroom inside the Chatroom List
 var ChatroomListItem = React.createClass({
-		displayName: 'ChatroomListItem',
+	displayName: 'ChatroomListItem',
 
-		render: function () {
-				return React.createElement(
-						'div',
-						{ className: 'chatRoomListItem' },
-						React.createElement(ModalView, { owner: this.props.owner, accessId: this.props.accessId })
-				);
-		}
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'chatRoomListItem' },
+			React.createElement(ChatroomModalView, { owner: this.props.owner, accessId: this.props.accessId })
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// // Modal View
-var ModalView = React.createClass({
-		displayName: 'ModalView',
+// // Chatroom Modal View
+var ChatroomModalView = React.createClass({
+	displayName: 'ChatroomModalView',
 
-		getInitialState: function () {
-				return { modalIsOpen: false };
-		},
+	getInitialState: function () {
+		return { modalIsOpen: false };
+	},
 
-		openModal: function () {
-				this.setState({ modalIsOpen: true });
-		},
+	openModal: function () {
+		this.setState({ modalIsOpen: true });
+	},
 
-		closeModal: function () {
-				this.setState({ modalIsOpen: false });
-		},
+	closeModal: function () {
+		this.setState({ modalIsOpen: false });
+	},
 
-		render: function () {
-				const customStyles = {
-						content: {
-								top: '50%',
-								left: '50%',
-								right: 'auto',
-								bottom: 'auto',
-								marginRight: '-50%',
-								transform: 'translate(-50%, -50%)'
-						}
-				};
-				return React.createElement(
-						'div',
-						null,
-						React.createElement(
-								'button',
-								{ onClick: this.openModal },
-								this.props.owner,
-								' ',
-								this.props.accessId
-						),
-						React.createElement(
-								Modal,
-								{
-										isOpen: this.state.modalIsOpen,
-										onRequestClose: this.closeModal,
-										style: customStyles },
-								React.createElement(
-										'button',
-										{ onClick: this.closeModal },
-										'close'
-								),
-								React.createElement(Chatroom, { owner: this.props.owner, accessId: this.props.accessId })
-						)
-				);
-		}
+	render: function () {
+		const customStyles = {
+			content: {
+				top: '50%',
+				left: '50%',
+				right: 'auto',
+				bottom: 'auto',
+				marginRight: '-50%',
+				transform: 'translate(-50%, -50%)'
+			}
+		};
+		return React.createElement(
+			'div',
+			null,
+			React.createElement(
+				'button',
+				{ onClick: this.openModal },
+				'Owner: ',
+				this.props.owner,
+				' ',
+				React.createElement('br', null),
+				' Room ID: ',
+				this.props.accessId
+			),
+			React.createElement(
+				Modal,
+				{
+					isOpen: this.state.modalIsOpen,
+					style: customStyles },
+				React.createElement(
+					'button',
+					{ onClick: this.closeModal },
+					'close'
+				),
+				React.createElement(Chatroom, { owner: this.props.owner, accessId: this.props.accessId })
+			)
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Actual Chatroom
 var Chatroom = React.createClass({
-		displayName: 'Chatroom',
+	displayName: 'Chatroom',
 
-		mixins: [ReactFireMixin],
-		getMessages: function () {
-				var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/" + this.props.accessId + "/messages");
-				this.bindAsArray(ref, "fireBaseMessageData");
-		},
+	mixins: [ReactFireMixin],
+	getMessages: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/" + this.props.accessId + "/messages");
+		this.bindAsArray(ref, "fireBaseMessageData");
+	},
 
-		sendMessage: function (message) {
-				var that = this;
-				var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
-				var facebookAuth = facebookRef.getAuth();
-				this.firebaseRefs.fireBaseMessageData.push({
-						msg: message,
-						username: facebookAuth.facebook.displayName,
-						userId: facebookAuth.facebook.id,
-						profileImgUrl: facebookAuth.facebook.profileImageURL
-				});
-				// this.setState({message: ""})
-		},
-		getInitialState: function () {
-				return { fireBaseMessageData: [] };
-		},
-		componentDidMount: function () {
-				this.getMessages();
-				this.handleFacebook;
-				// You can define pollInterval as a Chatroom attribute in ReactDom.render
-				// This will invoke getMessages every defined interval
-				// setInterval(this.getMessages, this.props.pollInterval);
-		},
+	getFacebookRef: function () {
+		var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
+		this.bindAsObject(facebookRef, "facebookRef");
+	},
 
-		render: function () {
-				return React.createElement(
-						'div',
-						{ className: 'chatRoom' },
-						React.createElement(ChatHeader, null),
-						React.createElement(
-								'h2',
-								null,
-								'T-t-t-tizzite! You are a match!'
-						),
-						React.createElement(ChatWindow, { chatWindowData: this.state.fireBaseMessageData }),
-						React.createElement(ChatForm, { sendMessage: this.sendMessage })
-				);
-		}
+	sendMessage: function (message) {
+		var that = this;
+		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
+		this.firebaseRefs.fireBaseMessageData.push({
+			msg: message,
+			username: facebookAuth.facebook.displayName,
+			userId: facebookAuth.facebook.id,
+			profileImgUrl: facebookAuth.facebook.profileImageURL
+		});
+	},
+	getInitialState: function () {
+		return { fireBaseMessageData: [] };
+	},
+	componentDidMount: function () {
+		this.getFacebookRef();
+		this.getMessages();
+		// You can define pollInterval as a Chatroom attribute in ReactDom.render
+		// This will invoke getMessages every defined interval
+		// setInterval(this.getMessages, this.props.pollInterval);
+	},
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'chatRoom' },
+			React.createElement(ChatHeader, null),
+			React.createElement(
+				'h2',
+				null,
+				'T-t-t-tizzite! You are a match!'
+			),
+			React.createElement(ChatWindow, { chatWindowData: this.state.fireBaseMessageData }),
+			React.createElement(ChatForm, { sendMessage: this.sendMessage })
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Chatroom Header
 var ChatHeader = React.createClass({
-		displayName: 'ChatHeader',
+	displayName: 'ChatHeader',
 
-		mixins: [ReactFireMixin],
-		render: function () {
-				// Users you are chatting with
-				name = 'PLACEHOLDER: User(s) you are chatting with';
-				return React.createElement(
-						'div',
-						{ className: 'msg-wgt-header' },
-						React.createElement(
-								'a',
-								{ href: '#' },
-								name
-						)
-				);
-		}
+	mixins: [ReactFireMixin],
+	render: function () {
+		// Users you are chatting with
+		name = 'PLACEHOLDER: User(s) you are chatting with';
+		return React.createElement(
+			'div',
+			{ className: 'msg-wgt-header' },
+			React.createElement(
+				'a',
+				{ href: '#' },
+				name
+			)
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Chatroom Messages
 var ChatWindow = React.createClass({
-		displayName: 'ChatWindow',
+	displayName: 'ChatWindow',
 
-		componentWillUpdate: function () {
-				var node = ReactDOM.findDOMNode(this);
-				this.shouldScrollBottom = node.scrollTop + node.offsetHeight === node.scrollHeight;
-		},
-		componentDidUpdate: function () {
-				if (this.shouldScrollBottom) {
-						var node = ReactDOM.findDOMNode(this);
-						node.scrollTop = node.scrollHeight;
-				}
-		},
-		render: function () {
-				// Inline styles in React
-				const inlineStyles = {
-						height: '300px',
-						overflowY: 'scroll'
-				};
-				// Loop through the list of chats and create array of Message components
-				// There needs to be some kind of logic that detects whether the message was sent by you or other people
-				var messageNodes = this.props.chatWindowData.map(function (message, i) {
-						return React.createElement(Message, { username: message.username, key: i, userId: message.userId, message: message.msg, avatar: message.profileImgUrl });
-				});
-				return React.createElement(
-						'div',
-						{ className: 'chatWindow', style: inlineStyles },
-						messageNodes
-				);
+	componentWillUpdate: function () {
+		var node = ReactDOM.findDOMNode(this);
+		this.shouldScrollBottom = node.scrollTop + node.offsetHeight === node.scrollHeight;
+	},
+	componentDidUpdate: function () {
+		if (this.shouldScrollBottom) {
+			var node = ReactDOM.findDOMNode(this);
+			node.scrollTop = node.scrollHeight;
 		}
+	},
+	render: function () {
+		// Inline styles in React
+		const inlineStyles = {
+			height: '300px',
+			overflowY: 'scroll'
+		};
+		// Loop through the list of chats and create array of Message components
+		// There needs to be some kind of logic that detects whether the message was sent by you or other people
+		var messageNodes = this.props.chatWindowData.map(function (message, i) {
+			return React.createElement(Message, { username: message.username, key: i, userId: message.userId, message: message.msg, avatar: message.profileImgUrl });
+		});
+		return React.createElement(
+			'div',
+			{ className: 'chatWindow', style: inlineStyles },
+			messageNodes
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Chatroom Input
 var ChatForm = React.createClass({
-		displayName: 'ChatForm',
+	displayName: 'ChatForm',
 
-		componentDidMount: function () {
-				this.handleSubmitMsgButton();
-		},
-		handleSubmitMsgButton: function (event) {},
-		//Message send event handler
-		handleUserMessage: function (event) {
-				// When shift and enter key is pressed
-				if (event.shiftKey && event.keyCode === 13) {
-						var msg = ReactDOM.findDOMNode(this.refs.textArea).value.trim();
-						if (msg !== '') {
-								// call the sendMessage of Chatroom through the props
-								// this was passed in from <Chatroom sendMessage={this.sendMessage}>
-								this.props.sendMessage(msg);
-						}
-						// Prevent default and clear the textarea
-						event.preventDefault();
-						ReactDOM.findDOMNode(this.refs.textArea).value = null;
-				} else {
-						var that = this;
-						$('#submit-msg').click(function () {
-								var msg = ReactDOM.findDOMNode(that.refs.textArea).value.trim();
-								if (msg !== '') {
-										// call the sendMessage of Chatroom through the props
-										// this was passed in from <Chatroom sendMessage={this.sendMessage}>
-										that.props.sendMessage(msg);
-								}
-								// Prevent default and clear the textarea
-								ReactDOM.findDOMNode(that.refs.textArea).value = null;
-						});
+	componentDidMount: function () {
+		this.handleSubmitMsgButton();
+	},
+	handleSubmitMsgButton: function (event) {},
+	//Message send event handler
+	handleUserMessage: function (event) {
+		// When shift and enter key is pressed
+		if (event.shiftKey && event.keyCode === 13) {
+			var msg = ReactDOM.findDOMNode(this.refs.textArea).value.trim();
+			if (msg !== '') {
+				// call the sendMessage of Chatroom through the props
+				// this was passed in from <Chatroom sendMessage={this.sendMessage}>
+				this.props.sendMessage(msg);
+			}
+			// Prevent default and clear the textarea
+			event.preventDefault();
+			ReactDOM.findDOMNode(this.refs.textArea).value = null;
+		} else {
+			var that = this;
+			$('#submit-msg').click(function () {
+				var msg = ReactDOM.findDOMNode(that.refs.textArea).value.trim();
+				if (msg !== '') {
+					// call the sendMessage of Chatroom through the props
+					// this was passed in from <Chatroom sendMessage={this.sendMessage}>
+					that.props.sendMessage(msg);
 				}
-		},
-		render: function () {
-				return React.createElement(
-						'div',
-						{ className: 'msg-wgt-footer' },
-						React.createElement('textarea', { id: 'chatMsg', ref: 'textArea', onKeyDown: this.handleUserMessage, placeholder: 'Type your message. Press shift + enter to send' }),
-						React.createElement(
-								'button',
-								{ id: 'submit-msg' },
-								' Submit '
-						)
-				);
+				// Prevent default and clear the textarea
+				ReactDOM.findDOMNode(that.refs.textArea).value = null;
+			});
 		}
+	},
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'msg-wgt-footer' },
+			React.createElement('textarea', { id: 'chatMsg', ref: 'textArea', onKeyDown: this.handleUserMessage, placeholder: 'Type your message. Press shift + enter to send' }),
+			React.createElement(
+				'button',
+				{ id: 'submit-msg' },
+				' Submit '
+			)
+		);
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // // Individual Message
 // TODO: time stamp (check http://www.codedodle.com/2015/04/facebook-like-chat-application-react-js.html)
 var Message = React.createClass({
-		displayName: 'Message',
+	displayName: 'Message',
 
-		render: function () {
-				var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
-				var facebookAuth = facebookRef.getAuth();
-				if (this.props.userId == facebookAuth.facebook.id) {
-						return React.createElement(
-								'div',
-								{ className: 'my-msg-row-container' },
-								React.createElement(
-										'div',
-										{ className: 'my-msg-row' },
-										React.createElement(
-												'div',
-												{ className: 'my-avatar' },
-												React.createElement('img', { id: 'profileImg', src: this.props.avatar })
-										),
-										React.createElement(
-												'span',
-												{ className: 'my-user-label' },
-												React.createElement(
-														'a',
-														{ href: '#', className: 'my-chat-username' },
-														this.props.username
-												)
-										),
-										React.createElement('br', null),
-										React.createElement(
-												'div',
-												{ className: 'my-msg-content' },
-												this.props.message
-										)
-								)
-						);
-				} else {
-						return React.createElement(
-								'div',
-								{ className: 'msg-row-container' },
-								React.createElement(
-										'div',
-										{ className: 'msg-row' },
-										React.createElement(
-												'div',
-												{ className: 'avatar' },
-												React.createElement('img', { id: 'profileImg', src: this.props.avatar })
-										),
-										React.createElement(
-												'span',
-												{ className: 'user-label' },
-												React.createElement(
-														'a',
-														{ href: '#', className: 'chat-username' },
-														this.props.username
-												)
-										),
-										React.createElement('br', null),
-										this.props.message
-								)
-						);
-				};
-		}
+	render: function () {
+		var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
+		var facebookAuth = facebookRef.getAuth();
+		if (this.props.userId == facebookAuth.facebook.id) {
+			return React.createElement(
+				'div',
+				{ className: 'my-msg-row-container' },
+				React.createElement(
+					'div',
+					{ className: 'my-msg-row' },
+					React.createElement(
+						'div',
+						{ className: 'my-avatar' },
+						React.createElement('img', { id: 'profileImg', src: this.props.avatar })
+					),
+					React.createElement(
+						'span',
+						{ className: 'my-user-label' },
+						React.createElement(
+							'a',
+							{ href: '#', className: 'my-chat-username' },
+							this.props.username
+						)
+					),
+					React.createElement('br', null),
+					React.createElement(
+						'div',
+						{ className: 'my-msg-content' },
+						this.props.message
+					)
+				)
+			);
+		} else {
+			return React.createElement(
+				'div',
+				{ className: 'msg-row-container' },
+				React.createElement(
+					'div',
+					{ className: 'msg-row' },
+					React.createElement(
+						'div',
+						{ className: 'avatar' },
+						React.createElement('img', { id: 'profileImg', src: this.props.avatar })
+					),
+					React.createElement(
+						'span',
+						{ className: 'user-label' },
+						React.createElement(
+							'a',
+							{ href: '#', className: 'chat-username' },
+							this.props.username
+						)
+					),
+					React.createElement('br', null),
+					this.props.message
+				)
+			);
+		};
+	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
