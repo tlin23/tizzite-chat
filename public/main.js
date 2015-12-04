@@ -106,33 +106,24 @@ var ChatClient = React.createClass({
 
   createEvent: function(eventName, eventDesc) {
   	// Create chatroom
-  	var chatroom = this.firebaseRefs.firebaseChatroomData.push({
-			owner: this.state.currentUsername,
-			userId: this.state.currentUserId
-		})
-
-  	var chatroomKey = chatroom.key();
-
-  	this.firebaseRefs.firebaseEventsData.push({
+  	var eventsRef = this.firebaseRefs.firebaseEventsData.push({
   		owner: this.state.currentUsername,
 			ownerId: this.state.currentUserId,
 			eventName: eventName,
 			eventDesc: eventDesc,
-			chatroomId: chatroomKey
   	})
+  	var eventKey = eventsRef.key()
+  	this.createChatroom(eventKey)
   },
 
-  // This is currently not used
-  // Because chatrooms only need to be created
-  // when events are created
-  // However, we may have use for this later
-	createChatroom: function() {
-		this.firebaseRefs.firebaseChatroomData.push({
+	createChatroom: function(eventKey) {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom")
+		eventChatroomRef = "firebaseChatroomData" + eventKey
+		this.bindAsObject(ref, eventChatroomRef);
+		this.firebaseRefs[eventChatroomRef].update({
 			owner: this.state.currentUsername,
 			userId: this.state.currentUserId
 		})
-		// var key = newPostRef.key()
-		// console.log(key);
 	},
 
 	render: function() {
@@ -251,7 +242,7 @@ var EventModalView = React.createClass({
 	          style={customStyles} >
 
 	          <button onClick={this.closeModal}>close</button>
-	          <MyEventDescription chatroomId={this.props.chatroomId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+	          <MyEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
 	        </Modal>
 	      </div>
 	    );
@@ -264,7 +255,7 @@ var EventModalView = React.createClass({
 	          style={customStyles} >
 
 	          <button onClick={this.closeModal}>close</button>
-	          <GoerEventDescription chatroomId={this.props.chatroomId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+	          <GoerEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
 	        </Modal>
 				</div>
 			)
@@ -295,7 +286,6 @@ var MyEventDescription = React.createClass({
 		var that = this;
 		$('#enter-chatroom').click(function(event) {
 			console.log('Enter Chatroom got clicked!!')
-			console.log(that.props.chatroomId)
 			//Now use this chatroomId to enter the chatroom
 			//Close the modal view and open a new modal view? Try it!
 		});
@@ -371,7 +361,7 @@ var EventsList = React.createClass({
 		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
 			var accessId = theEvent['.key']
 			return (
-				<EventsListItem chatroomId={theEvent.chatroomId} currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
+				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
 			);
 		});
 
@@ -387,7 +377,7 @@ var EventsListItem = React.createClass({
 	render: function() {
 		return (
 			<div className="chatRoomListItem">
-				<EventModalView chatroomId={this.props.chatroomId} currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+				<EventModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
 			</div>
 		);
 	}
