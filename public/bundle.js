@@ -20983,6 +20983,15 @@ var GoerEventDescription = React.createClass({
 var MyEventDescription = React.createClass({
 	displayName: 'MyEventDescription',
 
+	handleEnterChatroomButton: function () {
+		$('#enter-chatroom').click(function (event) {
+			console.log('Enter Chatroom got clicked!!');
+		});
+	},
+	componentDidMount: function () {
+		this.handleEnterChatroomButton();
+	},
+
 	render: function () {
 		return React.createElement(
 			'div',
@@ -20993,7 +21002,13 @@ var MyEventDescription = React.createClass({
 			React.createElement('br', null),
 			this.props.eventName,
 			React.createElement('br', null),
-			this.props.eventDesc
+			this.props.eventDesc,
+			React.createElement('br', null),
+			React.createElement(
+				'button',
+				{ id: 'enter-chatroom' },
+				' Enter Chatroom '
+			)
 		);
 	}
 });

@@ -278,6 +278,15 @@ var GoerEventDescription = React.createClass({
 })
 
 var MyEventDescription = React.createClass({
+	handleEnterChatroomButton: function() {
+		$('#enter-chatroom').click(function(event) {
+			console.log('Enter Chatroom got clicked!!')
+		});
+	},
+	componentDidMount: function() {
+		this.handleEnterChatroomButton();
+	},
+
 	render: function() {
 		return (
 			<div className="myEventDescription">
@@ -288,11 +297,12 @@ var MyEventDescription = React.createClass({
 				{this.props.eventName}
 				<br/>
 				{this.props.eventDesc}
+				<br/>
+				<button id='enter-chatroom'> Enter Chatroom </button>
 			</div>
 		)
 	}
 })
-
 
 
 // // Facebook Log In/Out Button
