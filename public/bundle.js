@@ -20662,6 +20662,7 @@ var ChatClient = React.createClass({
 		this.handleLoginButton();
 	},
 
+	// This will eventually be removed because you should only be able to get an event specific chatroom
 	getChatrooms: function () {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/");
 		this.bindAsArray(ref, "firebaseChatroomData");
@@ -20767,10 +20768,8 @@ var ChatClient = React.createClass({
 			'div',
 			{ className: 'chatClient' },
 			React.createElement(FacebookAuthButton, null),
-			React.createElement(CreateChatButton, { createChatroom: this.createChatroom }),
 			React.createElement(CreateEventModalView, { createEvent: this.createEvent, owner: this.state.currentUsername, ownerId: this.state.currentUserId }),
-			React.createElement(EventsList, { eventsListData: this.state.firebaseEventsData, currentUsername: this.state.currentUsername, currentUserId: this.state.currentUserId }),
-			React.createElement(ChatroomList, { chatRoomListData: this.state.firebaseChatroomData })
+			React.createElement(EventsList, { eventsListData: this.state.firebaseEventsData, currentUsername: this.state.currentUsername, currentUserId: this.state.currentUserId })
 		);
 	}
 });
@@ -20967,7 +20966,29 @@ var EventModalView = React.createClass({
 var GoerEventDescription = React.createClass({
 	displayName: 'GoerEventDescription',
 
+	getInitialState: function () {
+		return { modalIsOpen: false };
+	},
+
+	openModal: function () {
+		this.setState({ modalIsOpen: true });
+	},
+
+	closeModal: function () {
+		this.setState({ modalIsOpen: false });
+	},
+
 	render: function () {
+		const customStyles = {
+			content: {
+				top: '50%',
+				left: '50%',
+				right: 'auto',
+				bottom: 'auto',
+				marginRight: '-50%',
+				transform: 'translate(-50%, -50%)'
+			}
+		};
 		return React.createElement(
 			'div',
 			{ className: 'goerEventDescription' },
@@ -20979,7 +21000,29 @@ var GoerEventDescription = React.createClass({
 			React.createElement('br', null),
 			this.props.eventName,
 			React.createElement('br', null),
-			this.props.eventDesc
+			this.props.eventDesc,
+			React.createElement('br', null),
+			React.createElement(
+				'div',
+				{ className: 'eventModalView' },
+				React.createElement(
+					'button',
+					{ onClick: this.openModal },
+					' Enter Chatroom '
+				),
+				React.createElement(
+					Modal,
+					{
+						isOpen: this.state.modalIsOpen,
+						style: customStyles },
+					React.createElement(
+						'button',
+						{ onClick: this.closeModal },
+						'close'
+					),
+					React.createElement(Chatroom, { accessId: this.props.accessId })
+				)
+			)
 		);
 	}
 });
@@ -20987,19 +21030,29 @@ var GoerEventDescription = React.createClass({
 var MyEventDescription = React.createClass({
 	displayName: 'MyEventDescription',
 
-	handleEnterChatroomButton: function () {
-		var that = this;
-		$('#enter-chatroom').click(function (event) {
-			console.log('Enter Chatroom got clicked!!');
-			//Now use this chatroomId to enter the chatroom
-			//Close the modal view and open a new modal view? Try it!
-		});
+	getInitialState: function () {
+		return { modalIsOpen: false };
 	},
-	componentDidMount: function () {
-		this.handleEnterChatroomButton();
+
+	openModal: function () {
+		this.setState({ modalIsOpen: true });
+	},
+
+	closeModal: function () {
+		this.setState({ modalIsOpen: false });
 	},
 
 	render: function () {
+		const customStyles = {
+			content: {
+				top: '50%',
+				left: '50%',
+				right: 'auto',
+				bottom: 'auto',
+				marginRight: '-50%',
+				transform: 'translate(-50%, -50%)'
+			}
+		};
 		return React.createElement(
 			'div',
 			{ className: 'myEventDescription' },
@@ -21012,9 +21065,25 @@ var MyEventDescription = React.createClass({
 			this.props.eventDesc,
 			React.createElement('br', null),
 			React.createElement(
-				'button',
-				{ id: 'enter-chatroom' },
-				' Enter Chatroom '
+				'div',
+				{ className: 'eventModalView' },
+				React.createElement(
+					'button',
+					{ onClick: this.openModal },
+					' Enter Chatroom '
+				),
+				React.createElement(
+					Modal,
+					{
+						isOpen: this.state.modalIsOpen,
+						style: customStyles },
+					React.createElement(
+						'button',
+						{ onClick: this.closeModal },
+						'close'
+					),
+					React.createElement(Chatroom, { accessId: this.props.accessId })
+				)
 			)
 		);
 	}
@@ -21210,7 +21279,7 @@ var Chatroom = React.createClass({
 
 	mixins: [ReactFireMixin],
 	getMessages: function () {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/" + this.props.accessId + "/messages");
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/messages");
 		this.bindAsArray(ref, "fireBaseMessageData");
 	},
 

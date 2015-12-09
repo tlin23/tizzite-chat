@@ -26,6 +26,7 @@ var ChatClient = React.createClass({
 		this.handleLoginButton();
 	},
 
+	// This will eventually be removed because you should only be able to get an event specific chatroom
 	getChatrooms: function() {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/")
 		this.bindAsArray(ref, "firebaseChatroomData");
@@ -130,12 +131,12 @@ var ChatClient = React.createClass({
 		return (
 			<div className="chatClient">
 				<FacebookAuthButton />
-				<CreateChatButton createChatroom={this.createChatroom} />
+				
 				<CreateEventModalView createEvent={this.createEvent} owner={this.state.currentUsername} ownerId={this.state.currentUserId}/>
 				<EventsList eventsListData={this.state.firebaseEventsData} currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId} />
-				<ChatroomList chatRoomListData={this.state.firebaseChatroomData}/>
 			</div>
 		);
+
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -264,7 +265,29 @@ var EventModalView = React.createClass({
 })
 
 var GoerEventDescription = React.createClass({
+	getInitialState: function() {
+		return {modalIsOpen: false};
+	},
+
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
+
+  closeModal: function() {
+    this.setState({modalIsOpen: false});
+  },
+
 	render: function() {
+	  const customStyles = {
+		  content : {
+		    top                   : '50%',
+		    left                  : '50%',
+		    right                 : 'auto',
+		    bottom                : 'auto',
+		    marginRight           : '-50%',
+		    transform             : 'translate(-50%, -50%)'
+		  }
+		};
 		return (
 			<div className="goerEventDescription">
 				I AM NOT THE OWNER!!!
@@ -276,25 +299,45 @@ var GoerEventDescription = React.createClass({
 				{this.props.eventName}
 				<br/>
 				{this.props.eventDesc}
+				<br/>
+	      <div className='eventModalView'>
+	      	<button onClick={this.openModal}> Enter Chatroom </button>
+	        <Modal
+	          isOpen={this.state.modalIsOpen}
+	          style={customStyles} >
+	          <button onClick={this.closeModal}>close</button>
+	          <Chatroom accessId={this.props.accessId} />
+	        </Modal>
+	      </div>
 			</div>
 		)
 	}
 })
 
 var MyEventDescription = React.createClass({
-	handleEnterChatroomButton: function() {
-		var that = this;
-		$('#enter-chatroom').click(function(event) {
-			console.log('Enter Chatroom got clicked!!')
-			//Now use this chatroomId to enter the chatroom
-			//Close the modal view and open a new modal view? Try it!
-		});
-	},
-	componentDidMount: function() {
-		this.handleEnterChatroomButton();
+	getInitialState: function() {
+		return {modalIsOpen: false};
 	},
 
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
+
+  closeModal: function() {
+    this.setState({modalIsOpen: false});
+  },
+
 	render: function() {
+	  const customStyles = {
+		  content : {
+		    top                   : '50%',
+		    left                  : '50%',
+		    right                 : 'auto',
+		    bottom                : 'auto',
+		    marginRight           : '-50%',
+		    transform             : 'translate(-50%, -50%)'
+		  }
+		};
 		return (
 			<div className="myEventDescription">
 				{this.props.owner}
@@ -305,7 +348,15 @@ var MyEventDescription = React.createClass({
 				<br/>
 				{this.props.eventDesc}
 				<br/>
-				<button id='enter-chatroom'> Enter Chatroom </button>
+	      <div className='eventModalView'>
+	      	<button onClick={this.openModal}> Enter Chatroom </button>
+	        <Modal
+	          isOpen={this.state.modalIsOpen}
+	          style={customStyles} >
+	          <button onClick={this.closeModal}>close</button>
+	          <Chatroom accessId={this.props.accessId} />
+	        </Modal>
+	      </div>
 			</div>
 		)
 	}
@@ -464,7 +515,7 @@ var ChatroomModalView = React.createClass({
 var Chatroom = React.createClass({
 	mixins: [ReactFireMixin],
   getMessages: function() {
-    var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/" + this.props.accessId + "/messages") 
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/messages") 
     this.bindAsArray(ref, "fireBaseMessageData");
   },
 
