@@ -4,9 +4,22 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var Modal = require('react-modal');
 
+
+const MODALSTYLES = {
+  content : {
+    top                   : '50%',
+    left                  : '50%',
+    right                 : 'auto',
+    bottom                : 'auto',
+    marginRight           : '-50%',
+    transform             : 'translate(-50%, -50%)'
+  }
+};
+
 // Components
-// //Chat Client
-var ChatClient = React.createClass({
+// Tizzite Client
+var Tizzite = React.createClass({
+	// Components: FacebookAuthButton, CreateModalView, EventsList
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
@@ -19,17 +32,10 @@ var ChatClient = React.createClass({
 	},
 
 	componentDidMount: function() {
-		this.getChatrooms();
 		this.getEvents();
 		this.getFacebookAuth();
 		this.handleFacebook();
 		this.handleLoginButton();
-	},
-
-	// This will eventually be removed because you should only be able to get an event specific chatroom
-	getChatrooms: function() {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/chatrooms/")
-		this.bindAsArray(ref, "firebaseChatroomData");
 	},
 
 	getEvents: function() {
@@ -106,7 +112,6 @@ var ChatClient = React.createClass({
   },
 
   createEvent: function(eventName, eventDesc) {
-  	// Create chatroom
   	var eventsRef = this.firebaseRefs.firebaseEventsData.push({
   		owner: this.state.currentUsername,
 			ownerId: this.state.currentUserId,
@@ -142,6 +147,8 @@ var ChatClient = React.createClass({
 //////////////////////////////////////////////////////////////////////////////////////////
 
 var CreateEventModalView = React.createClass({
+	// Props: createEvent, owner, ownerId, 
+	// Components: button (Create an Event), Modal -> button (close), CreateEventForm
 	getInitialState: function() {
 		return {modalIsOpen: false};
 	},
@@ -154,22 +161,12 @@ var CreateEventModalView = React.createClass({
     this.setState({modalIsOpen: false});
   },
   render: function() {
-	  const customStyles = {
-		  content : {
-		    top                   : '50%',
-		    left                  : '50%',
-		    right                 : 'auto',
-		    bottom                : 'auto',
-		    marginRight           : '-50%',
-		    transform             : 'translate(-50%, -50%)'
-		  }
-		};
     return (
       <div>
         <button onClick={this.openModal}> Create an event</button>
         <Modal
           isOpen={this.state.modalIsOpen}
-          style={customStyles} >
+          style={MODALSTYLES} >
 
           <button onClick={this.closeModal}>close</button>
           <CreateEventForm closeModal={this.closeModal} createEvent={this.props.createEvent} owner={this.props.owner} ownerId={this.props.ownderId} />
@@ -180,6 +177,8 @@ var CreateEventModalView = React.createClass({
 })
 
 var CreateEventForm = React.createClass({
+	// Props: closeModal, createEvent, owner, ownerId
+	// Components: p (Planner), p (Event Name), p (Event Description), button (Create Event)
 	componentDidMount: function() {
 		this.handleCreateEventButton();
 	},
@@ -211,6 +210,8 @@ var CreateEventForm = React.createClass({
 })
 
 var EventModalView = React.createClass({
+	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
+	// Components: button (Planner, Event ID), Modal -> button (close), EventDescription
 	getInitialState: function() {
 		return {modalIsOpen: false};
 	},
@@ -224,49 +225,37 @@ var EventModalView = React.createClass({
   },
 
   render: function() {
-	  const customStyles = {
-		  content : {
-		    top                   : '50%',
-		    left                  : '50%',
-		    right                 : 'auto',
-		    bottom                : 'auto',
-		    marginRight           : '-50%',
-		    transform             : 'translate(-50%, -50%)'
-		  }
-		};
-		if (this.props.currentUserId == this.props.ownerId) {
-	    return (
-	      <div className='eventModalView'>
-	        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
-	        <Modal
-	          isOpen={this.state.modalIsOpen}
-	          style={customStyles} >
+  	var eventDescriptionElement;
+  	if (this.props.currentUserId == this.props.ownderId) {
+  		eventDescriptionElement = <PlannerEventDescription currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+  	} else {
+  		eventDescriptionElement = <GoerEventDescription currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+  	}
+    return (
+      <div className='eventModalView'>
+        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
+        <Modal
+          isOpen={this.state.modalIsOpen}
+          style={MODALSTYLES} >
 
-	          <button onClick={this.closeModal}>close</button>
-	          <MyEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
-	        </Modal>
-	      </div>
-	    );
-		} else {
-			return (
-				<div className='eventModalView'>
-	        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
-	        <Modal
-	          isOpen={this.state.modalIsOpen}
-	          style={customStyles} >
-
-	          <button onClick={this.closeModal}>close</button>
-	          <GoerEventDescription owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
-	        </Modal>
-				</div>
-			)
-		}
+          <button onClick={this.closeModal}>close</button>
+          {eventDescriptionElement}
+        </Modal>
+      </div>
+    );
   }
 })
 
-var GoerEventDescription = React.createClass({
+var PlannerEventDescription = React.createClass({
+	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
+	// Components: ChatroomModalView
+	mixins: [ReactFireMixin],
+
 	getInitialState: function() {
-		return {modalIsOpen: false};
+		return {
+			modalIsOpen: false,
+			approvalStatus: ''
+		};
 	},
 
   openModal: function() {
@@ -278,20 +267,8 @@ var GoerEventDescription = React.createClass({
   },
 
 	render: function() {
-	  const customStyles = {
-		  content : {
-		    top                   : '50%',
-		    left                  : '50%',
-		    right                 : 'auto',
-		    bottom                : 'auto',
-		    marginRight           : '-50%',
-		    transform             : 'translate(-50%, -50%)'
-		  }
-		};
 		return (
-			<div className="goerEventDescription">
-				I AM NOT THE OWNER!!!
-				<br/>
+			<div className="plannerEventDescription">
 				{this.props.owner}
 				<br/>
 				{this.props.ownerId}
@@ -300,23 +277,27 @@ var GoerEventDescription = React.createClass({
 				<br/>
 				{this.props.eventDesc}
 				<br/>
-	      <div className='eventModalView'>
-	      	<button onClick={this.openModal}> Enter Chatroom </button>
-	        <Modal
-	          isOpen={this.state.modalIsOpen}
-	          style={customStyles} >
-	          <button onClick={this.closeModal}>close</button>
-	          <Chatroom accessId={this.props.accessId} />
-	        </Modal>
-	      </div>
+				<ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />;
 			</div>
 		)
 	}
 })
 
-var MyEventDescription = React.createClass({
+var GoerEventDescription = React.createClass({
+	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
+	// Components: ChatroomModalView
+	mixins: [ReactFireMixin],
+
 	getInitialState: function() {
-		return {modalIsOpen: false};
+		return {
+			modalIsOpen: false,
+			approvalStatus: ''
+		};
+	},
+
+	componentDidMount: function() {
+		this.getGoerStatus();
+		this.handleRequestJoinButton();
 	},
 
   openModal: function() {
@@ -327,19 +308,41 @@ var MyEventDescription = React.createClass({
     this.setState({modalIsOpen: false});
   },
 
+  getGoerStatus: function() {
+  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUserId + '/status')
+  	this.bindAsObject(ref, "approvalStatus");
+  },
+
+  handleRequestJoinButton: function() {
+  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUserId)
+  	this.bindAsObject(ref, "firebaseGoerRequest");
+  	var that = this;
+		$('#request-to-join').click(function(){
+      that.firebaseRefs.firebaseGoerRequest.set({
+      	status : 'pending'
+      })
+      $('#request-to-join').hide();
+		})
+  },
+
 	render: function() {
-	  const customStyles = {
-		  content : {
-		    top                   : '50%',
-		    left                  : '50%',
-		    right                 : 'auto',
-		    bottom                : 'auto',
-		    marginRight           : '-50%',
-		    transform             : 'translate(-50%, -50%)'
-		  }
-		};
+		var chatroomButton;
+		var currentUserStatus= this.state.approvalStatus['.value']
+		if (currentUserStatus == 'approved') {
+			//You are either the owner or you've been accepted as an attendee
+			// show ChatRoomModalView
+			chatroomButton = <ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />;
+		} else if (currentUserStatus == 'pending' || currentUserStatus == 'denied') {
+			// this means you are a goer who has not been accepted yet, show either request or pending button
+			// if your id is in the requestingList, show pending
+			// other wise, show request button
+			// // when the request button is pressed, add id to the requestingList and show pending
+			chatroomButton = <button>Pending Approval</button>
+		} else {
+			chatroomButton = <button id='request-to-join'>Request to Join</button>;
+		}
 		return (
-			<div className="myEventDescription">
+			<div className="goerEventDescription">
 				{this.props.owner}
 				<br/>
 				{this.props.ownerId}
@@ -348,15 +351,7 @@ var MyEventDescription = React.createClass({
 				<br/>
 				{this.props.eventDesc}
 				<br/>
-	      <div className='eventModalView'>
-	      	<button onClick={this.openModal}> Enter Chatroom </button>
-	        <Modal
-	          isOpen={this.state.modalIsOpen}
-	          style={customStyles} >
-	          <button onClick={this.closeModal}>close</button>
-	          <Chatroom accessId={this.props.accessId} />
-	        </Modal>
-	      </div>
+				{chatroomButton}
 			</div>
 		)
 	}
@@ -365,6 +360,8 @@ var MyEventDescription = React.createClass({
 
 // // Facebook Log In/Out Button
 var FacebookAuthButton = React.createClass({
+	// Props: 
+	// Components
   render: function() {
     return(
 	      <div className="faceBookAuth">
@@ -376,31 +373,9 @@ var FacebookAuthButton = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// // Create Chat Button
-var CreateChatButton = React.createClass({
-	componentDidMount: function() {
-		this.handleCreateChatButton();
-	},
-
-	handleCreateChatButton: function() {
-		var that = this;
-		// random unique id generator
-		$('#create-chat').click(function(event) {
-			that.props.createChatroom();
-		});
-	},
-
-	render: function() {
-		return(
-			<div className="createChat">
-				<button id='create-chat'>Create Chat</button>
-			</div>				
-		);
-	}
-});
-//////////////////////////////////////////////////////////////////////////////////////////
-
 var EventsList = React.createClass({
+	// Props: eventsListData, currentUsername, currentUserId
+	// Components: (many) EventsListItem
 	render: function() {
 		var that = this;
 		var inlineStyles = {
@@ -425,6 +400,8 @@ var EventsList = React.createClass({
 });
 
 var EventsListItem = React.createClass({
+	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
+	// Components: EventModalView
 	render: function() {
 		return (
 			<div className="chatRoomListItem">
@@ -434,44 +411,10 @@ var EventsListItem = React.createClass({
 	}
 });
 
-// // List of Chatrooms
-var ChatroomList = React.createClass({
-	render: function() {
-		var inlineStyles = {
-			height: '300px',
-			overflowY: 'scroll'
-		};
-
-		var chatroomNodes = this.props.chatRoomListData.map(function(chatRoom, i) {
-			var accessId = chatRoom['.key']
-			return (
-				<ChatroomListItem owner={chatRoom.owner} accessId={accessId} key={i} />
-			);
-		});
-
-		return(
-			<div className="chatRoomList" style={inlineStyles}>
-				{chatroomNodes}
-			</div>
-		)
-	}
-});
-//////////////////////////////////////////////////////////////////////////////////////////
-
-// // Individual Chatroom inside the Chatroom List
-var ChatroomListItem = React.createClass({
-	render: function() {
-		return (
-			<div className="chatRoomListItem">
-				<ChatroomModalView owner={this.props.owner} accessId={this.props.accessId} />
-			</div>
-		);
-	}
-});
-//////////////////////////////////////////////////////////////////////////////////////////
-
 // // Chatroom Modal View
 var ChatroomModalView = React.createClass({
+	// Props: currentUsername, currentUserId, owner, accessId
+	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
 	getInitialState: function() {
     return { modalIsOpen: false };
   },
@@ -485,25 +428,15 @@ var ChatroomModalView = React.createClass({
   },
 
   render: function() {
-	  const customStyles = {
-		  content : {
-		    top                   : '50%',
-		    left                  : '50%',
-		    right                 : 'auto',
-		    bottom                : 'auto',
-		    marginRight           : '-50%',
-		    transform             : 'translate(-50%, -50%)'
-		  }
-		};
     return (
       <div>
-        <button onClick={this.openModal}>Owner: {this.props.owner} <br /> Room ID: {this.props.accessId}</button>
+        <button onClick={this.openModal}>Enter Chatroom</button>
         <Modal
           isOpen={this.state.modalIsOpen}
-          style={customStyles} >
+          style={MODALSTYLES} >
 
           <button onClick={this.closeModal}>close</button>
-          <Chatroom owner={this.props.owner} accessId={this.props.accessId} />
+          <Chatroom currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />
         </Modal>
       </div>
     );
@@ -513,7 +446,24 @@ var ChatroomModalView = React.createClass({
 
 // // Actual Chatroom
 var Chatroom = React.createClass({
+	// Props: currentUsername, currentUserId, owner, accessId
+	// Components: ChatHeader, ChatWindow, ChatForm
 	mixins: [ReactFireMixin],
+
+	getInitialState: function() {
+		return {
+			fireBaseMessageData: []
+		};
+	},
+
+  componentDidMount: function() {
+    this.getFacebookRef();
+    this.getMessages();
+    // You can define pollInterval as a Chatroom attribute in ReactDom.render
+    // This will invoke getMessages every defined interval
+    // setInterval(this.getMessages, this.props.pollInterval);
+  },
+
   getMessages: function() {
     var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/messages") 
     this.bindAsArray(ref, "fireBaseMessageData");
@@ -534,16 +484,6 @@ var Chatroom = React.createClass({
       profileImgUrl: facebookAuth.facebook.profileImageURL
     });
   },
-  getInitialState: function() {
-    return {fireBaseMessageData: []};
-  },
-  componentDidMount: function() {
-    this.getFacebookRef();
-    this.getMessages();
-    // You can define pollInterval as a Chatroom attribute in ReactDom.render
-    // This will invoke getMessages every defined interval
-    // setInterval(this.getMessages, this.props.pollInterval);
-  },
 
 	render: function() {
 		return(
@@ -560,7 +500,8 @@ var Chatroom = React.createClass({
 
 // // Chatroom Header
 var ChatHeader = React.createClass({
-	mixins: [ReactFireMixin],
+	// Props:
+	// Components: a (name)
   render: function() {
     // Users you are chatting with
     name = 'PLACEHOLDER: User(s) you are chatting with'
@@ -575,6 +516,8 @@ var ChatHeader = React.createClass({
 
 // // Chatroom Messages
 var ChatWindow = React.createClass({
+	// Props: chatWindowData
+	// Components: (many) Message
 	componentWillUpdate: function() {
 		var node = ReactDOM.findDOMNode(this);
 		this.shouldScrollBottom = node.scrollTop + node.offsetHeight === node.scrollHeight;
@@ -609,12 +552,9 @@ var ChatWindow = React.createClass({
 
 // // Chatroom Input
 var ChatForm = React.createClass({
-	componentDidMount: function() {
-		this.handleSubmitMsgButton();
-	},
-	handleSubmitMsgButton: function(event) {
+	//Props: sendMessage
+	//Components: textarea, button (submit)
 
-	},
   //Message send event handler
   handleUserMessage: function(event) {
     // When shift and enter key is pressed
@@ -656,6 +596,8 @@ var ChatForm = React.createClass({
 // // Individual Message
 // TODO: time stamp (check http://www.codedodle.com/2015/04/facebook-like-chat-application-react-js.html)
 var Message = React.createClass({
+	// Props: username, userId, message, avatar
+	// Components: img (profileImg), a (username)
   render: function() {
   	var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
     var facebookAuth = facebookRef.getAuth();
@@ -690,7 +632,7 @@ var Message = React.createClass({
 
 // // Mount to html
 ReactDOM.render(
-  <ChatClient />,
+  <Tizzite />,
   document.getElementById('content')
 );
 //////////////////////////////////////////////////////////////////////////////////////////
