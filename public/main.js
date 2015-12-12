@@ -226,7 +226,7 @@ var EventModalView = React.createClass({
 
   render: function() {
   	var eventDescriptionElement;
-  	if (this.props.currentUserId == this.props.ownderId) {
+  	if (this.props.currentUserId == this.props.ownerId) {
   		eventDescriptionElement = <PlannerEventDescription currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
   	} else {
   		eventDescriptionElement = <GoerEventDescription currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
@@ -254,8 +254,17 @@ var PlannerEventDescription = React.createClass({
 	getInitialState: function() {
 		return {
 			modalIsOpen: false,
-			approvalStatus: ''
+			firebaseGoersList: []
 		};
+	},
+
+	componentDidMount: function() {
+		this.getGoersList();
+	},
+
+	getGoersList: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList")
+		this.bindAsArray(ref, "firebaseGoersList");
 	},
 
   openModal: function() {
@@ -277,11 +286,76 @@ var PlannerEventDescription = React.createClass({
 				<br/>
 				{this.props.eventDesc}
 				<br/>
-				<ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />;
+				<GoersList firebaseGoersList={this.state.firebaseGoersList} accessId={this.props.accessId} />
+				<br/>
+				<ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />
 			</div>
 		)
 	}
 })
+
+var GoersList = React.createClass({
+	// Props: firebaseGoersList, accessId
+	// Components: (many) GoersListItem
+	render: function() {
+		var that = this;
+		var inlineStyles = {
+			height: '100px',
+			overflowY: 'scroll'
+		};
+		var goersNodes = this.props.firebaseGoersList.map(function(theGoer, i) {
+			var goerId = theGoer['.key']
+			var goerApprovalStatus = theGoer['status']
+			if (goerApprovalStatus == 'pending') {
+				return (
+					<GoersListItem goerId={goerId} goerApprovalStatus={goerApprovalStatus} accessId={that.props.accessId} key={i} />
+				);
+			}
+		});
+
+		return(
+			<div className="goerList" style={inlineStyles}>
+				{goersNodes}
+			</div>
+		)
+	}
+});
+
+var GoersListItem = React.createClass({
+	// Props: goerId, goerApprovalStatus, accessId
+	// Components:
+	
+	componentDidMount: function() {
+		this.handleApprovalButtons();
+	},
+
+
+	handleApprovalButtons: function() {
+		var that = this;
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goerId)
+		$('.approve-button').click(function(event){
+				ref.update({
+					status : 'approved'
+				})
+    	})
+		$('.deny-button').click(function(event){
+				ref.update({
+					status : 'denied'
+				})
+    	})
+	},
+
+
+	render: function() {
+		return (
+			<div className="goersListItem">
+				{this.props.goerId}
+				<button className='approve-button'> Yes </button>
+				<button className='deny-button'> No </button>
+			</div>
+		);
+	}
+});
 
 var GoerEventDescription = React.createClass({
 	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
