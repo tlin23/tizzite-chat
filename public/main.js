@@ -247,7 +247,7 @@ var EventModalView = React.createClass({
 })
 
 var PlannerEventDescription = React.createClass({
-	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
 	// Components: ChatroomModalView
 	mixins: [ReactFireMixin],
 
@@ -288,7 +288,7 @@ var PlannerEventDescription = React.createClass({
 				<br/>
 				<GoersList firebaseGoersList={this.state.firebaseGoersList} accessId={this.props.accessId} />
 				<br/>
-				<ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />
+				<ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} accessId={this.props.accessId} />
 			</div>
 		)
 	}
@@ -395,7 +395,7 @@ var GoerEventDescription = React.createClass({
       that.firebaseRefs.firebaseGoerRequest.set({
       	status : 'pending'
       })
-      $('#request-to-join').hide();
+      // $('#request-to-join').hide();
 		})
   },
 
@@ -487,7 +487,7 @@ var EventsListItem = React.createClass({
 
 // // Chatroom Modal View
 var ChatroomModalView = React.createClass({
-	// Props: currentUsername, currentUserId, owner, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId accessId
 	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
 	getInitialState: function() {
     return { modalIsOpen: false };
@@ -510,7 +510,7 @@ var ChatroomModalView = React.createClass({
           style={MODALSTYLES} >
 
           <button onClick={this.closeModal}>close</button>
-          <Chatroom currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />
+          <Chatroom currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} accessId={this.props.accessId} />
         </Modal>
       </div>
     );
@@ -520,13 +520,13 @@ var ChatroomModalView = React.createClass({
 
 // // Actual Chatroom
 var Chatroom = React.createClass({
-	// Props: currentUsername, currentUserId, owner, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, accessId
 	// Components: ChatHeader, ChatWindow, ChatForm
 	mixins: [ReactFireMixin],
 
 	getInitialState: function() {
 		return {
-			fireBaseMessageData: []
+			fireBaseMessageData: [],
 		};
 	},
 
@@ -562,7 +562,7 @@ var Chatroom = React.createClass({
 	render: function() {
 		return(
       <div className="chatRoom">
-        <ChatHeader />
+        <ChatHeader owner={this.props.owner} currentUser/>
           <h2>T-t-t-tizzite! You are a match!</h2>
         <ChatWindow chatWindowData={this.state.fireBaseMessageData}/>
         <ChatForm sendMessage={this.sendMessage} />
