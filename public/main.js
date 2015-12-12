@@ -487,7 +487,7 @@ var EventsListItem = React.createClass({
 
 // // Chatroom Modal View
 var ChatroomModalView = React.createClass({
-	// Props: currentUsername, currentUserId, owner, ownerId accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, accessId
 	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
 	getInitialState: function() {
     return { modalIsOpen: false };
@@ -527,16 +527,23 @@ var Chatroom = React.createClass({
 	getInitialState: function() {
 		return {
 			fireBaseMessageData: [],
+			firebaseGoersList: []
 		};
 	},
 
   componentDidMount: function() {
     this.getFacebookRef();
     this.getMessages();
+    this.getGoersList();
     // You can define pollInterval as a Chatroom attribute in ReactDom.render
     // This will invoke getMessages every defined interval
     // setInterval(this.getMessages, this.props.pollInterval);
   },
+
+	getGoersList: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList")
+		this.bindAsArray(ref, "firebaseGoersList");
+	},
 
   getMessages: function() {
     var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/messages") 
@@ -562,7 +569,7 @@ var Chatroom = React.createClass({
 	render: function() {
 		return(
       <div className="chatRoom">
-        <ChatHeader owner={this.props.owner} currentUser/>
+        <ChatHeader firebaseGoersList={this.state.firebaseGoersList}/>
           <h2>T-t-t-tizzite! You are a match!</h2>
         <ChatWindow chatWindowData={this.state.fireBaseMessageData}/>
         <ChatForm sendMessage={this.sendMessage} />
@@ -574,14 +581,22 @@ var Chatroom = React.createClass({
 
 // // Chatroom Header
 var ChatHeader = React.createClass({
-	// Props:
+	// Props: firebaseGoersList
 	// Components: a (name)
   render: function() {
     // Users you are chatting with
-    name = 'PLACEHOLDER: User(s) you are chatting with'
+    // TODO: have each approved goer and owner show up in the header
+    var name = [];
+
+    var goerNodes = this.props.firebaseGoersList.map(function(theGoer, i) {
+      return (
+        <a key={i}> {theGoer['.key']} </a>
+      );    		
+    });
+
     return (
       <div className="msg-wgt-header">
-        <a href="#">{name}</a>
+  			I am place holder
       </div>
     );
   }

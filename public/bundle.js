@@ -20933,7 +20933,7 @@ var EventModalView = React.createClass({
 var PlannerEventDescription = React.createClass({
 	displayName: 'PlannerEventDescription',
 
-	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
 	// Components: ChatroomModalView
 	mixins: [ReactFireMixin],
 
@@ -20975,7 +20975,7 @@ var PlannerEventDescription = React.createClass({
 			React.createElement('br', null),
 			React.createElement(GoersList, { firebaseGoersList: this.state.firebaseGoersList, accessId: this.props.accessId }),
 			React.createElement('br', null),
-			React.createElement(ChatroomModalView, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, accessId: this.props.accessId })
+			React.createElement(ChatroomModalView, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, ownerId: this.props.ownerId, accessId: this.props.accessId })
 		);
 	}
 });
@@ -21024,13 +21024,11 @@ var GoersListItem = React.createClass({
 			ref.update({
 				status: 'approved'
 			});
-			$(event.toElement.parentElement).hide();
 		});
 		$('.deny-button').click(function (event) {
 			ref.update({
 				status: 'denied'
 			});
-			$(event.toElement.parentElement).hide();
 		});
 	},
 
@@ -21093,7 +21091,7 @@ var GoerEventDescription = React.createClass({
 			that.firebaseRefs.firebaseGoerRequest.set({
 				status: 'pending'
 			});
-			$('#request-to-join').hide();
+			// $('#request-to-join').hide();
 		});
 	},
 
@@ -21206,7 +21204,7 @@ var EventsListItem = React.createClass({
 var ChatroomModalView = React.createClass({
 	displayName: 'ChatroomModalView',
 
-	// Props: currentUsername, currentUserId, owner, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, accessId
 	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
 	getInitialState: function () {
 		return { modalIsOpen: false };
@@ -21239,7 +21237,7 @@ var ChatroomModalView = React.createClass({
 					{ onClick: this.closeModal },
 					'close'
 				),
-				React.createElement(Chatroom, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, accessId: this.props.accessId })
+				React.createElement(Chatroom, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, ownerId: this.props.ownerId, accessId: this.props.accessId })
 			)
 		);
 	}
@@ -21250,22 +21248,29 @@ var ChatroomModalView = React.createClass({
 var Chatroom = React.createClass({
 	displayName: 'Chatroom',
 
-	// Props: currentUsername, currentUserId, owner, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, accessId
 	// Components: ChatHeader, ChatWindow, ChatForm
 	mixins: [ReactFireMixin],
 
 	getInitialState: function () {
 		return {
-			fireBaseMessageData: []
+			fireBaseMessageData: [],
+			firebaseGoersList: []
 		};
 	},
 
 	componentDidMount: function () {
 		this.getFacebookRef();
 		this.getMessages();
+		this.getGoersList();
 		// You can define pollInterval as a Chatroom attribute in ReactDom.render
 		// This will invoke getMessages every defined interval
 		// setInterval(this.getMessages, this.props.pollInterval);
+	},
+
+	getGoersList: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList");
+		this.bindAsArray(ref, "firebaseGoersList");
 	},
 
 	getMessages: function () {
@@ -21293,7 +21298,7 @@ var Chatroom = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'chatRoom' },
-			React.createElement(ChatHeader, null),
+			React.createElement(ChatHeader, { firebaseGoersList: this.state.firebaseGoersList }),
 			React.createElement(
 				'h2',
 				null,
@@ -21310,19 +21315,27 @@ var Chatroom = React.createClass({
 var ChatHeader = React.createClass({
 	displayName: 'ChatHeader',
 
-	// Props:
+	// Props: firebaseGoersList
 	// Components: a (name)
 	render: function () {
 		// Users you are chatting with
-		name = 'PLACEHOLDER: User(s) you are chatting with';
+		// TODO: have each approved goer and owner show up in the header
+		var name = [];
+
+		var goerNodes = this.props.firebaseGoersList.map(function (theGoer, i) {
+			return React.createElement(
+				'a',
+				{ key: i },
+				' ',
+				theGoer['.key'],
+				' '
+			);
+		});
+
 		return React.createElement(
 			'div',
 			{ className: 'msg-wgt-header' },
-			React.createElement(
-				'a',
-				{ href: '#' },
-				name
-			)
+			'I am place holder'
 		);
 	}
 });
