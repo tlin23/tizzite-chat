@@ -27,8 +27,6 @@ var Tizzite = React.createClass({
 
 	getInitialState: function() {
 		return {
-			firebaseChatroomData: [],
-			firebaseEventsData: [],
 			currentUsername: '',
 			currentUserId: '',
 			isLoggedIn: false
@@ -36,15 +34,9 @@ var Tizzite = React.createClass({
 	},
 
 	componentDidMount: function() {
-		this.getEvents();
 		this.getFacebookAuth();
 		this.handleFacebook();
 		this.handleLoginButton();
-	},
-
-	getEvents: function() {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/")
-		this.bindAsArray(ref, "firebaseEventsData");
 	},
 
 	getFacebookAuth: function() {
@@ -125,27 +117,6 @@ var Tizzite = React.createClass({
 	  });
   },
 
-  createEvent: function(eventName, eventDesc) {
-  	var eventsRef = this.firebaseRefs.firebaseEventsData.push({
-  		owner: this.state.currentUsername,
-			ownerId: this.state.currentUserId,
-			eventName: eventName,
-			eventDesc: eventDesc,
-  	})
-  	var eventKey = eventsRef.key()
-  	this.createChatroom(eventKey)
-  },
-
-	createChatroom: function(eventKey) {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom")
-		eventChatroomRef = "firebaseChatroomData" + eventKey
-		this.bindAsObject(ref, eventChatroomRef);
-		this.firebaseRefs[eventChatroomRef].update({
-			owner: this.state.currentUsername,
-			userId: this.state.currentUserId
-		})
-	},
-
 	render: function() {
 		if (this.state.isLoggedIn == false) {
 			return (
@@ -157,9 +128,7 @@ var Tizzite = React.createClass({
 			return (
 				<div className="chatClient">
 					<FacebookAuthButton />
-					<MapComponent />
-					<CreateEventModalView createEvent={this.createEvent} owner={this.state.currentUsername} ownerId={this.state.currentUserId}/>
-					<EventsList eventsListData={this.state.firebaseEventsData} currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId} />
+					<MapComponent currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId}/>
 				</div>
 			);
 		}
@@ -168,16 +137,74 @@ var Tizzite = React.createClass({
 //////////////////////////////////////////////////////////////////////////////////////////
 
 var MapComponent = React.createClass({
-	mapOnClick: function(x, y, lat, lng, event) {
-		console.log(x, y, lat, lng, event)
+	mixins: [ReactFireMixin],
+	//Props: createEvent, owner, ownerId
+	getInitialState: function() {
+		return {
+			firebaseChatroomData: [],
+			firebaseEventsData: [],
+			modalIsOpen: false,
+			clickedLat: null,
+			clickedLng: null
+		};
 	},
 
-	createEvent: function(lat, lng) {
-		console.log('Creating event! :' + lat + lng);
+	componentDidMount: function() {
+		this.getEvents();
+	},
+
+	getEvents: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/")
+		this.bindAsArray(ref, "firebaseEventsData");
+	},
+
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
+
+  closeModal: function() {
+    this.setState({
+    	modalIsOpen: false,
+			clickedLat: null,
+			clickedLng: null
+    });
+  },
+
+  createEvent: function(eventName, eventDesc, owner, ownerId, lat, lng) {
+  	var eventsRef = this.firebaseRefs.firebaseEventsData.push({
+  		owner: owner,
+			ownerId: ownerId,
+			eventName: eventName,
+			eventDesc: eventDesc,
+			lat: lat,
+			lng: lng
+  	})
+  	var eventKey = eventsRef.key()
+  	this.createChatroom(eventKey)
+  },
+
+	createChatroom: function(eventKey) {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom")
+		eventChatroomRef = "firebaseChatroomData" + eventKey
+		this.bindAsObject(ref, eventChatroomRef);
+		this.firebaseRefs[eventChatroomRef].update({
+			owner: this.props.currentUsername,
+			userId: this.props.currentUserId
+		})
+	},
+
+	handleMapOnClick: function(clickedEvent) {
+		if (clickedEvent.event.target.nodeName.toLowerCase() != 'button') {
+			this.setState({
+				clickedLat: clickedEvent.lat,
+				clickedLng: clickedEvent.lng
+			});
+			this.openModal();
+		}
 	},
 
 	onChildClick: function(key, childProps) {
-		this.createEvent(childProps.lat,childProps.lng);
+		console.log(childProps)
 	},
 
   getDefaultProps: function() {
@@ -191,20 +218,34 @@ var MapComponent = React.createClass({
   },
 
   render: function() {
+		var that = this;
+		var eventsNodes = this.state.firebaseEventsData.map(function(theEvent, i) {
+			var accessId = theEvent['.key']
+			return (
+				<EventsListItem lat={theEvent.lat} lng={theEvent.lng} currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} lat={theEvent.lat} lng={theEvent.lng} accessId={accessId} key={i} />
+			);
+		});
 		const MAPSTYLE = {
 		    width: '1000px',
 		    height: '600px'
 		};
     return (
     	<div style={MAPSTYLE}>
+        <Modal
+          isOpen={this.state.modalIsOpen}
+          style={MODALSTYLES} >
+
+          <button onClick={this.closeModal}>close</button>
+          <CreateEventForm lat={this.state.clickedLat} lng={this.state.clickedLng} closeModal={this.closeModal} createEvent={this.createEvent} owner={this.props.currentUsername} ownerId={this.props.currentUserId} />
+        </Modal>
 	      <GoogleMap
 	       	key = {this.props.key}
 	       	language = {this.props.language}
 	        defaultCenter={this.props.center}
 	        defaultZoom={this.props.zoom}
 	        onChildClick={this.onChildClick}
-	        onClick={this.mapOnClick}>
-	        <EventMarker lat={49.2827} lng={-123.1207} text={'A'} />
+	        onClick={this.handleMapOnClick}>
+	        {eventsNodes}
 	      </GoogleMap>
 	    </div>
     );
@@ -268,7 +309,7 @@ var CreateEventModalView = React.createClass({
 
 // Create Event Form
 var CreateEventForm = React.createClass({
-	// Props: closeModal, createEvent, owner, ownerId
+	// Props: closeModal, createEvent, owner, ownerId, lat, lng
 	// Components: p (Planner), p (Event Name), p (Event Description), button (Create Event)
 	componentDidMount: function() {
 		this.handleCreateEventButton();
@@ -280,7 +321,7 @@ var CreateEventForm = React.createClass({
 			var eventName = ReactDOM.findDOMNode(that.refs.eventName).value.trim();
 			var eventDesc = ReactDOM.findDOMNode(that.refs.eventDesc).value.trim();
 			if (eventName !== '' && eventDesc !== '') {
-				that.props.createEvent(eventName, eventDesc);
+				that.props.createEvent(eventName, eventDesc, that.props.owner, that.props.ownerId, that.props.lat, that.props.lng);
 				that.props.closeModal();
 			} else {
 				alert('Please enter all fields');
@@ -306,17 +347,17 @@ var EventsList = React.createClass({
 	// Props: eventsListData, currentUsername, currentUserId
 	// Components: (many) EventsListItem
 	render: function() {
-		var that = this;
+		
 		var inlineStyles = {
 			height: '300px',
 			overflowY: 'scroll'
 		};
 
-		//console.log(this.props.chatroomId)
+		var that = this;
 		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
 			var accessId = theEvent['.key']
 			return (
-				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
+				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} lat={theEvent.lat} lng={theEvent.lng} accessId={accessId} key={i} />
 			);
 		});
 
@@ -331,7 +372,7 @@ var EventsList = React.createClass({
 
 // Events List Item
 var EventsListItem = React.createClass({
-	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
+	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, lat, lng accessId
 	// Components: EventModalView
 	render: function() {
 		return (
@@ -368,7 +409,7 @@ var EventModalView = React.createClass({
   	}
     return (
       <div className='eventModalView'>
-        <button onClick={this.openModal}>Planner: {this.props.owner} <br /> Event ID: {this.props.accessId}</button>
+        <button onClick={this.openModal}>T</button>
         <Modal
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
