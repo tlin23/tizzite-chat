@@ -3,6 +3,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Modal = require('react-modal');
+var GoogleMap = require('google-map-react');
 
 
 const MODALSTYLES = {
@@ -16,6 +17,8 @@ const MODALSTYLES = {
   }
 };
 
+
+
 // Components
 // Tizzite Client
 var Tizzite = React.createClass({
@@ -27,7 +30,8 @@ var Tizzite = React.createClass({
 			firebaseChatroomData: [],
 			firebaseEventsData: [],
 			currentUsername: '',
-			currentUserId: '' 
+			currentUserId: '',
+			isLoggedIn: false
 		};
 	},
 
@@ -48,12 +52,21 @@ var Tizzite = React.createClass({
     this.bindAsObject(ref, "facebookRef");
 	},
 
-	setCurrentUserAndId: function() {
+	setLoginState: function() {
 		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
 		var currentUsername =	facebookAuth.facebook.displayName;
 		var currentUserId = facebookAuth.facebook.id;
-		this.setState({currentUsername: currentUsername});
-		this.setState({currentUserId: currentUserId});
+		this.setState({
+			currentUsername: currentUsername,
+			currentUserId: currentUserId,
+			isLoggedIn: true
+		});
+	},
+
+	setLogoutState: function() {
+		this.setState({
+			isLoggedIn: false
+		});
 	},
 
   handleFacebook: function(){
@@ -61,11 +74,12 @@ var Tizzite = React.createClass({
     var authData = this.firebaseRefs.facebookRef.getAuth();
     var authDataCallback = function authDataCallback(authData) {
       if (authData) {
-      	that.setCurrentUserAndId();
+      	that.setLoginState();
         console.log("User " + authData.uid + " is logged in with " + authData.provider);
         $('#fblogin-button').hide()
         $('#fblogout-button').show()
       } else {
+      	that.setLogoutState();
         console.log("User is logged out");
         $('#fblogin-button').show()
         $('#fblogout-button').hide()
@@ -133,19 +147,94 @@ var Tizzite = React.createClass({
 	},
 
 	render: function() {
-		return (
-			<div className="chatClient">
-				<FacebookAuthButton />
-				
-				<CreateEventModalView createEvent={this.createEvent} owner={this.state.currentUsername} ownerId={this.state.currentUserId}/>
-				<EventsList eventsListData={this.state.firebaseEventsData} currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId} />
-			</div>
-		);
-
+		if (this.state.isLoggedIn == false) {
+			return (
+				<div className="chatClient">
+					<FacebookAuthButton />
+				</div>
+			)
+		} else {
+			return (
+				<div className="chatClient">
+					<FacebookAuthButton />
+					<MapComponent />
+					<CreateEventModalView createEvent={this.createEvent} owner={this.state.currentUsername} ownerId={this.state.currentUserId}/>
+					<EventsList eventsListData={this.state.firebaseEventsData} currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId} />
+				</div>
+			);
+		}
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var MapComponent = React.createClass({
+	mapOnClick: function(x, y, lat, lng, event) {
+		console.log(x, y, lat, lng, event)
+	},
+
+	createEvent: function(lat, lng) {
+		console.log('Creating event! :' + lat + lng);
+	},
+
+	onChildClick: function(key, childProps) {
+		this.createEvent(childProps.lat,childProps.lng);
+	},
+
+  getDefaultProps: function() {
+    return {
+    	key: 'AIzaSyAC_GzpyatkGZlZYLCfTKhiLsYcsei1Xas',
+    	language: 'eng',
+	    center: {lat: 49.2827, lng: -123.1207},
+	    zoom: 12,
+	    greatPlaceCoords: {lat: 49.2827, lng: -123.1207}
+    };
+  },
+
+  render: function() {
+		const MAPSTYLE = {
+		    width: '1000px',
+		    height: '600px'
+		};
+    return (
+    	<div style={MAPSTYLE}>
+	      <GoogleMap
+	       	key = {this.props.key}
+	       	language = {this.props.language}
+	        defaultCenter={this.props.center}
+	        defaultZoom={this.props.zoom}
+	        onChildClick={this.onChildClick}
+	        onClick={this.mapOnClick}>
+	        <EventMarker lat={49.2827} lng={-123.1207} text={'A'} />
+	      </GoogleMap>
+	    </div>
+    );
+  }
+})
+
+var EventMarker = React.createClass({
+	render: function() {
+		return(
+			<div className='eventMarker'> <button>{this.props.text}</button> </div>
+		)
+	}
+})
+
+// // Facebook Log In/Out Button
+var FacebookAuthButton = React.createClass({
+	// Props: 
+	// Components
+  render: function() {
+    return(
+	      <div className="faceBookAuth">
+	        <button id="fblogin-button"> Facebook Sign In</button>
+	        <button id="fblogout-button"> Facebook Sign Out</button>
+	      </div>
+      )
+  }
+});
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// Create Event Modal View
 var CreateEventModalView = React.createClass({
 	// Props: createEvent, owner, ownerId, 
 	// Components: button (Create an Event), Modal -> button (close), CreateEventForm
@@ -175,7 +264,9 @@ var CreateEventModalView = React.createClass({
     );
   }
 })
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Create Event Form
 var CreateEventForm = React.createClass({
 	// Props: closeModal, createEvent, owner, ownerId
 	// Components: p (Planner), p (Event Name), p (Event Description), button (Create Event)
@@ -208,7 +299,51 @@ var CreateEventForm = React.createClass({
     )
 	}
 })
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
+// EventsList
+var EventsList = React.createClass({
+	// Props: eventsListData, currentUsername, currentUserId
+	// Components: (many) EventsListItem
+	render: function() {
+		var that = this;
+		var inlineStyles = {
+			height: '300px',
+			overflowY: 'scroll'
+		};
+
+		//console.log(this.props.chatroomId)
+		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
+			var accessId = theEvent['.key']
+			return (
+				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
+			);
+		});
+
+		return(
+			<div className="eventsList" style={inlineStyles}>
+				{eventsNodes}
+			</div>
+		)
+	}
+});
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// Events List Item
+var EventsListItem = React.createClass({
+	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
+	// Components: EventModalView
+	render: function() {
+		return (
+			<div className="chatRoomListItem">
+				<EventModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+			</div>
+		);
+	}
+});
+///////////////////////////////////////////////////////////////////////////////////////////
+
+// Event Modal View
 var EventModalView = React.createClass({
 	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
 	// Components: button (Planner, Event ID), Modal -> button (close), EventDescription
@@ -245,7 +380,9 @@ var EventModalView = React.createClass({
     );
   }
 })
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Planner Event Description
 var PlannerEventDescription = React.createClass({
 	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
 	// Components: ChatroomModalView
@@ -293,7 +430,9 @@ var PlannerEventDescription = React.createClass({
 		)
 	}
 })
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
+// Goers List
 var GoersList = React.createClass({
 	// Props: firebaseGoersList, accessId
 	// Components: (many) GoersListItem
@@ -320,7 +459,9 @@ var GoersList = React.createClass({
 		)
 	}
 });
+//////////////////////////////////////////////////////////////////////////////////////////
 
+// Goers List Item
 var GoersListItem = React.createClass({
 	// Props: goerId, goerApprovalStatus, accessId
 	// Components:
@@ -356,7 +497,9 @@ var GoersListItem = React.createClass({
 		);
 	}
 });
+//////////////////////////////////////////////////////////////////////////////////////////////
 
+// GoerEventDescription
 var GoerEventDescription = React.createClass({
 	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
 	// Components: ChatroomModalView
@@ -430,60 +573,8 @@ var GoerEventDescription = React.createClass({
 		)
 	}
 })
+//////////////////////////////////////////////////////////////////////////////////////////////
 
-
-// // Facebook Log In/Out Button
-var FacebookAuthButton = React.createClass({
-	// Props: 
-	// Components
-  render: function() {
-    return(
-	      <div className="faceBookAuth">
-	        <button id="fblogin-button"> Facebook Sign In</button>
-	        <button id="fblogout-button"> Facebook Sign Out</button>
-	      </div>
-      )
-  }
-});
-//////////////////////////////////////////////////////////////////////////////////////////
-
-var EventsList = React.createClass({
-	// Props: eventsListData, currentUsername, currentUserId
-	// Components: (many) EventsListItem
-	render: function() {
-		var that = this;
-		var inlineStyles = {
-			height: '300px',
-			overflowY: 'scroll'
-		};
-
-		//console.log(this.props.chatroomId)
-		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
-			var accessId = theEvent['.key']
-			return (
-				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} accessId={accessId} key={i} />
-			);
-		});
-
-		return(
-			<div className="eventsList" style={inlineStyles}>
-				{eventsNodes}
-			</div>
-		)
-	}
-});
-
-var EventsListItem = React.createClass({
-	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
-	// Components: EventModalView
-	render: function() {
-		return (
-			<div className="chatRoomListItem">
-				<EventModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
-			</div>
-		);
-	}
-});
 
 // // Chatroom Modal View
 var ChatroomModalView = React.createClass({
