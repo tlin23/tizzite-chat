@@ -4,6 +4,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var Modal = require('react-modal');
 var GoogleMap = require('google-map-react');
+var Bootstrap = require('bootstrap');
 
 
 const MODALSTYLES = {
@@ -194,7 +195,7 @@ var MapComponent = React.createClass({
 	},
 
 	handleMapOnClick: function(clickedEvent) {
-		if (clickedEvent.event.target.nodeName.toLowerCase() != 'button') {
+		if (clickedEvent.event.target.nodeName.toLowerCase() != 'img') {
 			this.setState({
 				clickedLat: clickedEvent.lat,
 				clickedLng: clickedEvent.lng
@@ -227,7 +228,8 @@ var MapComponent = React.createClass({
 		});
 		const MAPSTYLE = {
 		    width: '1000px',
-		    height: '600px'
+		    height: '600px',
+		    margin: '0 auto'
 		};
     return (
     	<div style={MAPSTYLE}>
@@ -267,8 +269,12 @@ var FacebookAuthButton = React.createClass({
   render: function() {
     return(
 	      <div className="faceBookAuth">
-	        <button id="fblogin-button"> Facebook Sign In</button>
-	        <button id="fblogout-button"> Facebook Sign Out</button>
+	        <button type="button" className="btn btn-default" aria-label="Left Align" id="fblogin-button">
+	        	<span className="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+	        </button>
+	        <button type="button" className="btn btn-default" aria-label="Left Align" id="fblogout-button">
+	        	<span className="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+	        </button>
 	      </div>
       )
   }
@@ -409,7 +415,7 @@ var EventModalView = React.createClass({
   	}
     return (
       <div className='eventModalView'>
-        <button onClick={this.openModal}>T</button>
+        <img src='assets/img/map-icon.png' onClick={this.openModal} height='36px' width='36px'/>
         <Modal
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >

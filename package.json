@@ -7,6 +7,7 @@
     "babel-preset-react": "^6.1.18",
     "babelify": "^7.2.0",
     "body-parser": "^1.4.3",
+    "bootstrap": "^3.3.6",
     "express": "^4.4.5",
     "google-map-react": "^0.9.3",
     "jquery": "^2.1.4",
