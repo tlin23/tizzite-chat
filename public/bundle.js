@@ -27788,6 +27788,10 @@ var Tizzite = React.createClass({
 	},
 
 	render: function () {
+		const LOGOSTYLE = {
+			margin: '0 300px',
+			clear: 'left'
+		};
 		if (this.state.isLoggedIn == false) {
 			return React.createElement(
 				'div',
@@ -27799,6 +27803,7 @@ var Tizzite = React.createClass({
 				'div',
 				{ className: 'chatClient' },
 				React.createElement(FacebookAuthButton, null),
+				React.createElement('img', { src: 'assets/img/logo.png', style: { margin: 'relative relative relative relative' } }),
 				React.createElement(MapComponent, { currentUsername: this.state.currentUsername, currentUserId: this.state.currentUserId })
 			);
 		}
@@ -27908,11 +27913,7 @@ var MapComponent = React.createClass({
 				{
 					isOpen: this.state.modalIsOpen,
 					style: MODALSTYLES },
-				React.createElement(
-					'button',
-					{ onClick: this.closeModal },
-					'close'
-				),
+				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
 				React.createElement(CreateEventForm, { lat: this.state.clickedLat, lng: this.state.clickedLng, closeModal: this.closeModal, createEvent: this.createEvent, owner: this.props.currentUsername, ownerId: this.props.currentUserId })
 			),
 			React.createElement(
@@ -28004,11 +28005,7 @@ var CreateEventModalView = React.createClass({
 				{
 					isOpen: this.state.modalIsOpen,
 					style: MODALSTYLES },
-				React.createElement(
-					'button',
-					{ onClick: this.closeModal },
-					'close'
-				),
+				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
 				React.createElement(CreateEventForm, { closeModal: this.closeModal, createEvent: this.props.createEvent, owner: this.props.owner, ownerId: this.props.ownderId })
 			)
 		);
@@ -28153,11 +28150,7 @@ var EventModalView = React.createClass({
 				{
 					isOpen: this.state.modalIsOpen,
 					style: MODALSTYLES },
-				React.createElement(
-					'button',
-					{ onClick: this.closeModal },
-					'close'
-				),
+				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
 				eventDescriptionElement
 			)
 		);
@@ -28201,12 +28194,13 @@ var PlannerEventDescription = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'plannerEventDescription' },
+			'Planner: ',
 			this.props.owner,
 			React.createElement('br', null),
-			this.props.ownerId,
-			React.createElement('br', null),
+			'Event Name: ',
 			this.props.eventName,
 			React.createElement('br', null),
+			'Event Description: ',
 			this.props.eventDesc,
 			React.createElement('br', null),
 			React.createElement(GoersList, { firebaseGoersList: this.state.firebaseGoersList, accessId: this.props.accessId }),
@@ -28410,11 +28404,7 @@ var ChatroomModalView = React.createClass({
 				{
 					isOpen: this.state.modalIsOpen,
 					style: MODALSTYLES },
-				React.createElement(
-					'button',
-					{ onClick: this.closeModal },
-					'close'
-				),
+				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
 				React.createElement(Chatroom, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, ownerId: this.props.ownerId, accessId: this.props.accessId })
 			)
 		);

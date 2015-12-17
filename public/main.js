@@ -119,6 +119,10 @@ var Tizzite = React.createClass({
   },
 
 	render: function() {
+		const LOGOSTYLE = {
+			margin : '0 300px',
+			clear  : 'left'
+		}
 		if (this.state.isLoggedIn == false) {
 			return (
 				<div className="chatClient">
@@ -129,6 +133,7 @@ var Tizzite = React.createClass({
 			return (
 				<div className="chatClient">
 					<FacebookAuthButton />
+					<img src='assets/img/logo.png' style={{margin : 'relative relative relative relative'}} />
 					<MapComponent currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId}/>
 				</div>
 			);
@@ -237,7 +242,7 @@ var MapComponent = React.createClass({
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
 
-          <button onClick={this.closeModal}>close</button>
+          <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
           <CreateEventForm lat={this.state.clickedLat} lng={this.state.clickedLng} closeModal={this.closeModal} createEvent={this.createEvent} owner={this.props.currentUsername} ownerId={this.props.currentUserId} />
         </Modal>
 	      <GoogleMap
@@ -304,7 +309,7 @@ var CreateEventModalView = React.createClass({
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
 
-          <button onClick={this.closeModal}>close</button>
+          <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
           <CreateEventForm closeModal={this.closeModal} createEvent={this.props.createEvent} owner={this.props.owner} ownerId={this.props.ownderId} />
         </Modal>
       </div>
@@ -420,7 +425,7 @@ var EventModalView = React.createClass({
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
 
-          <button onClick={this.closeModal}>close</button>
+          <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
           {eventDescriptionElement}
         </Modal>
       </div>
@@ -462,13 +467,11 @@ var PlannerEventDescription = React.createClass({
 	render: function() {
 		return (
 			<div className="plannerEventDescription">
-				{this.props.owner}
+				Planner: {this.props.owner}
 				<br/>
-				{this.props.ownerId}
+				Event Name: {this.props.eventName}
 				<br/>
-				{this.props.eventName}
-				<br/>
-				{this.props.eventDesc}
+				Event Description: {this.props.eventDesc}
 				<br/>
 				<GoersList firebaseGoersList={this.state.firebaseGoersList} accessId={this.props.accessId} />
 				<br/>
@@ -647,7 +650,7 @@ var ChatroomModalView = React.createClass({
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
 
-          <button onClick={this.closeModal}>close</button>
+          <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
           <Chatroom currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} accessId={this.props.accessId} />
         </Modal>
       </div>
