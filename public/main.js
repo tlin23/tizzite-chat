@@ -4,8 +4,6 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var Modal = require('react-modal');
 var GoogleMap = require('google-map-react');
-var Bootstrap = require('bootstrap');
-
 
 const MODALSTYLES = {
   content : {
@@ -17,8 +15,6 @@ const MODALSTYLES = {
     transform             : 'translate(-50%, -50%)'
   }
 };
-
-
 
 // Components
 // Tizzite Client
@@ -78,7 +74,6 @@ var Tizzite = React.createClass({
         $('#fblogout-button').hide()
       }
     }
-
     this.firebaseRefs.facebookRef.onAuth(authDataCallback);
   },
 
@@ -121,7 +116,7 @@ var Tizzite = React.createClass({
 	render: function() {
 		const LOGOSTYLE = {
 			margin : '0 300px',
-			clear  : 'left'
+			clear  : 'left',
 		}
 		if (this.state.isLoggedIn == false) {
 			return (
@@ -133,7 +128,7 @@ var Tizzite = React.createClass({
 			return (
 				<div className="chatClient">
 					<FacebookAuthButton />
-					<img src='assets/img/logo.png' style={{margin : 'relative relative relative relative'}} />
+					<img src='assets/img/tizzite-logo.png' style={{margin : 'relative relative relative relative'}} />
 					<MapComponent currentUsername={this.state.currentUsername} currentUserId={this.state.currentUserId}/>
 				</div>
 			);
@@ -141,6 +136,38 @@ var Tizzite = React.createClass({
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
+
+var LoginModal = React.createClass({
+	getInitialState: function() {
+		return {
+			modalIsOpen: false
+		}
+	},
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
+
+  closeModal: function() {
+    this.setState({modalIsOpen: false});
+  },
+  render: function() {
+  	return (
+  		<div className='loginModal'>
+	  		<button onClick={this.openModal}> Login </button>
+	      <Modal
+	        isOpen={this.state.modalIsOpen}
+	        style={MODALSTYLES} >
+
+	        <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
+	        <div>
+	        	<input type='image' src='assets/img/facebook-logo.png' style={{height: '48px',width: '48px'}}/>
+	        	<input type='image' src='assets/img/google-logo.png' style={{height: '48px',width: '60px'}}/>
+	        </div>
+	      </Modal>
+      </div>
+  	)
+  }
+});
 
 var MapComponent = React.createClass({
 	mixins: [ReactFireMixin],
@@ -224,18 +251,20 @@ var MapComponent = React.createClass({
   },
 
   render: function() {
+		const MAPSTYLE = {
+		    width: '1000px',
+		    height: '600px',
+		    margin: '10px 10px 10px 10px',
+		};
+
 		var that = this;
 		var eventsNodes = this.state.firebaseEventsData.map(function(theEvent, i) {
 			var accessId = theEvent['.key']
 			return (
-				<EventsListItem lat={theEvent.lat} lng={theEvent.lng} currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} lat={theEvent.lat} lng={theEvent.lng} accessId={accessId} key={i} />
+				<EventMarker lat={theEvent.lat} lng={theEvent.lng} currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} lat={theEvent.lat} lng={theEvent.lng} accessId={accessId} key={i} />
 			);
 		});
-		const MAPSTYLE = {
-		    width: '1000px',
-		    height: '600px',
-		    margin: '0 auto'
-		};
+
     return (
     	<div style={MAPSTYLE}>
         <Modal
@@ -259,14 +288,6 @@ var MapComponent = React.createClass({
   }
 })
 
-var EventMarker = React.createClass({
-	render: function() {
-		return(
-			<div className='eventMarker'> <button>{this.props.text}</button> </div>
-		)
-	}
-})
-
 // // Facebook Log In/Out Button
 var FacebookAuthButton = React.createClass({
 	// Props: 
@@ -274,9 +295,7 @@ var FacebookAuthButton = React.createClass({
   render: function() {
     return(
 	      <div className="faceBookAuth">
-	        <button type="button" className="btn btn-default" aria-label="Left Align" id="fblogin-button">
-	        	<span className="glyphicon glyphicon-log-in" aria-hidden="true"></span>
-	        </button>
+	        <input type='image' id="fblogin-button" src='assets/img/facebook-logo.png' style={{height: '48px', width: '48px'}}/>
 	        <button type="button" className="btn btn-default" aria-label="Left Align" id="fblogout-button">
 	        	<span className="glyphicon glyphicon-log-out" aria-hidden="true"></span>
 	        </button>
@@ -353,36 +372,8 @@ var CreateEventForm = React.createClass({
 })
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-// EventsList
-var EventsList = React.createClass({
-	// Props: eventsListData, currentUsername, currentUserId
-	// Components: (many) EventsListItem
-	render: function() {
-		
-		var inlineStyles = {
-			height: '300px',
-			overflowY: 'scroll'
-		};
-
-		var that = this;
-		var eventsNodes = this.props.eventsListData.map(function(theEvent, i) {
-			var accessId = theEvent['.key']
-			return (
-				<EventsListItem currentUsername={that.props.currentUsername} currentUserId={that.props.currentUserId} owner={theEvent.owner} ownerId={theEvent.ownerId} eventName={theEvent.eventName} eventDesc={theEvent.eventDesc} lat={theEvent.lat} lng={theEvent.lng} accessId={accessId} key={i} />
-			);
-		});
-
-		return(
-			<div className="eventsList" style={inlineStyles}>
-				{eventsNodes}
-			</div>
-		)
-	}
-});
-/////////////////////////////////////////////////////////////////////////////////////////
-
 // Events List Item
-var EventsListItem = React.createClass({
+var EventMarker = React.createClass({
 	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, lat, lng accessId
 	// Components: EventModalView
 	render: function() {
@@ -610,13 +601,11 @@ var GoerEventDescription = React.createClass({
 		}
 		return (
 			<div className="goerEventDescription">
-				{this.props.owner}
+				Planner: {this.props.owner}
 				<br/>
-				{this.props.ownerId}
+				EventName: {this.props.eventName}
 				<br/>
-				{this.props.eventName}
-				<br/>
-				{this.props.eventDesc}
+				Event Description: {this.props.eventDesc}
 				<br/>
 				{chatroomButton}
 			</div>
