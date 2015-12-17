@@ -55,10 +55,21 @@ var Tizzite = React.createClass({
 				},
 				isLoggedIn: true
 			});
+		} else if (loginAuth.provider.toLowerCase() == 'google') {
+			var currentUsername =	loginAuth.google.displayName;
+			var currentUserId = loginAuth.google.id;
+			var currentUserProfileImageURL = loginAuth.google.profileImageURL;
+			this.setState({
+				currentUser: {
+					name            : loginAuth.google.displayName,
+					id              : loginAuth.google.id,
+					profileImageURL : loginAuth.google.profileImageURL
+				},
+				isLoggedIn: true
+			});
 		} else {
 			console.log('oops! something went wrong with setLoginState')
 		}
-		console.log(this.state.currentUser)
 	},
 
 	setLogoutState: function() {
@@ -101,6 +112,24 @@ var Tizzite = React.createClass({
     };
   },
 
+  handleGoogleLoginButton: function() {
+  	var loginRef = this.firebaseRefs.loginRef
+    var isLoggedIn = this.firebaseRefs.loginRef.getAuth();
+    if(!isLoggedIn) {
+      loginRef.authWithOAuthPopup("google", function(error) {
+        if (error) {
+          alert("Login Failed!", error);
+        } else {
+          // We'll never get here, as the page will redirect on success.
+        };
+      });
+    } else {
+      console.log("Error: already logged in");
+      alert('Error: already logged in.');
+      // should never get here because login button shouldn't show up
+    };
+  },
+
   handleLogoutButton: function() {
   	var loginRef = this.firebaseRefs.loginRef
   	var isLoggedIn = this.firebaseRefs.loginRef.getAuth();
@@ -126,14 +155,15 @@ var Tizzite = React.createClass({
 		if (this.state.isLoggedIn == false) {
 			return (
 				<div className="chatClient">
-					<LoginModal handleFacebookLoginButton={this.handleFacebookLoginButton} />
+					<LoginModal handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton} />
+					<img src='assets/img/tizzite-logo.png' />
 				</div>
 			)
 		} else {
 			return (
 				<div className="chatClient">
 					<button onClick={this.handleLogoutButton}> Log Out </button>
-					<img src='assets/img/tizzite-logo.png' style={{margin : 'relative relative relative relative'}} />
+					<img src='assets/img/tizzite-logo.png' />
 					<MapComponent currentUser={this.state.currentUser} />
 				</div>
 			);
@@ -167,7 +197,7 @@ var LoginModal = React.createClass({
 	        <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
 	        <div>
 	        	<input onClick={this.props.handleFacebookLoginButton} type='image' src='assets/img/facebook-logo.png' style={{height: '48px',width: '48px'}}/>
-	        	<input id='gplus-login-button' type='image' src='assets/img/google-logo.png' style={{height: '48px',width: '60px'}}/>
+	        	<input onClick={this.props.handleGoogleLoginButton} id='gplus-login-button' type='image' src='assets/img/google-logo.png' style={{height: '48px',width: '60px'}}/>
 	        </div>
 	      </Modal>
       </div>
@@ -399,7 +429,7 @@ var EventMarker = React.createClass({
 	render: function() {
 		return (
 			<div className="chatRoomListItem">
-				<EventModalView currentUsername={this.props.currentUser.name} currentUserId={this.props.currentUser.id} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+				<EventModalView currentUser={this.props.currentUser} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
 			</div>
 		);
 	}
@@ -424,10 +454,10 @@ var EventModalView = React.createClass({
 
   render: function() {
   	var eventDescriptionElement;
-  	if (this.props.currentUserId == this.props.ownerId) {
-  		eventDescriptionElement = <PlannerEventDescription currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+  	if (this.props.currentUser.id == this.props.ownerId) {
+  		eventDescriptionElement = <PlannerEventDescription currentUser={this.props.currentUser} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
   	} else {
-  		eventDescriptionElement = <GoerEventDescription currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
+  		eventDescriptionElement = <GoerEventDescription currentUser={this.props.currentUser} owner={this.props.owner} ownerId={this.props.ownerId} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
   	}
     return (
       <div className='eventModalView'>
@@ -486,7 +516,7 @@ var PlannerEventDescription = React.createClass({
 				<br/>
 				<GoersList firebaseGoersList={this.state.firebaseGoersList} accessId={this.props.accessId} />
 				<br/>
-				<ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} ownerId={this.props.ownerId} accessId={this.props.accessId} />
+				<ChatroomModalView currentUser={this.props.currentUser} owner={this.props.owner} ownerId={this.props.ownerId} accessId={this.props.accessId} />
 			</div>
 		)
 	}
@@ -587,12 +617,12 @@ var GoerEventDescription = React.createClass({
   },
 
   getGoerStatus: function() {
-  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUserId + '/status')
+  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUser.id + '/status')
   	this.bindAsObject(ref, "approvalStatus");
   },
 
   handleRequestJoinButton: function() {
-  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUserId)
+  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUser.id)
   	this.bindAsObject(ref, "firebaseGoerRequest");
   	var that = this;
 		$('#request-to-join').click(function(){
@@ -609,7 +639,7 @@ var GoerEventDescription = React.createClass({
 		if (currentUserStatus == 'approved') {
 			//You are either the owner or you've been accepted as an attendee
 			// show ChatRoomModalView
-			chatroomButton = <ChatroomModalView currentUsername={this.props.currentUsername} currentUserId={this.props.currentUserId} owner={this.props.owner} accessId={this.props.accessId} />;
+			chatroomButton = <ChatroomModalView currentUser={this.props.currentUser} owner={this.props.owner} accessId={this.props.accessId} />;
 		} else if (currentUserStatus == 'pending' || currentUserStatus == 'denied') {
 			// this means you are a goer who has not been accepted yet, show either request or pending button
 			// if your id is in the requestingList, show pending
@@ -660,8 +690,7 @@ var ChatroomModalView = React.createClass({
           style={MODALSTYLES} >
 
           <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
-          <Chatroom currentUsername={this.props.currentUsername} 
-          	   			currentUserId={this.props.currentUserId} 
+          <Chatroom currentUser={this.props.currentUser}
           	   			owner={this.props.owner} 
           	   			ownerId={this.props.ownerId} 
           	   			accessId={this.props.accessId} />
@@ -711,12 +740,11 @@ var Chatroom = React.createClass({
 
   sendMessage: function(message) {
     var that = this;
-    var loginAuth = this.firebaseRefs.loginRef.getAuth();
     this.firebaseRefs.fireBaseMessageData.push({
       msg: message,
-      username: loginAuth.facebook.displayName,
-      userId: loginAuth.facebook.id,
-      profileImgUrl: loginAuth.facebook.profileImageURL
+      username: this.props.currentUser.name,
+      userId: this.props.currentUser.id,
+      profileImgUrl: this.props.currentUser.profileImageURL
     });
   },
 
@@ -725,7 +753,7 @@ var Chatroom = React.createClass({
       <div className="chatRoom">
         <ChatHeader firebaseGoersList={this.state.firebaseGoersList}/>
           <h2>T-t-t-tizzite! You are a match!</h2>
-        <ChatWindow currentUserId={this.props.currentUserId} chatWindowData={this.state.fireBaseMessageData}/>
+        <ChatWindow currentUserId={this.props.currentUser.id} chatWindowData={this.state.fireBaseMessageData}/>
         <ChatForm sendMessage={this.sendMessage} />
       </div>
 		);
