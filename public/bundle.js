@@ -25324,6 +25324,7 @@ var Tizzite = React.createClass({
 
 	getInitialState: function () {
 		return {
+			currentUser: {},
 			currentUsername: '',
 			currentUserId: '',
 			isLoggedIn: false
@@ -25331,86 +25332,90 @@ var Tizzite = React.createClass({
 	},
 
 	componentDidMount: function () {
-		this.getFacebookAuth();
-		this.handleFacebook();
-		this.handleLoginButton();
+		this.getLoginRef();
+		this.handleLoginCallback();
 	},
 
-	getFacebookAuth: function () {
+	getLoginRef: function () {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/");
-		this.bindAsObject(ref, "facebookRef");
+		this.bindAsObject(ref, "loginRef");
 	},
 
 	setLoginState: function () {
-		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
-		var currentUsername = facebookAuth.facebook.displayName;
-		var currentUserId = facebookAuth.facebook.id;
-		this.setState({
-			currentUsername: currentUsername,
-			currentUserId: currentUserId,
-			isLoggedIn: true
-		});
+		var loginAuth = this.firebaseRefs.loginRef.getAuth();
+		if (loginAuth.provider.toLowerCase() == 'facebook') {
+			var currentUsername = loginAuth.facebook.displayName;
+			var currentUserId = loginAuth.facebook.id;
+			var currentUserProfileImageURL = loginAuth.facebook.profileImageURL;
+			this.setState({
+				currentUser: {
+					name: loginAuth.facebook.displayName,
+					id: loginAuth.facebook.id,
+					profileImageURL: loginAuth.facebook.profileImageURL
+				},
+				isLoggedIn: true
+			});
+		} else {
+			console.log('oops! something went wrong with setLoginState');
+		}
+		console.log(this.state.currentUser);
 	},
 
 	setLogoutState: function () {
 		this.setState({
-			isLoggedIn: false
+			isLoggedIn: false,
+			currentUser: {}
 		});
 	},
 
-	handleFacebook: function () {
+	handleLoginCallback: function () {
 		var that = this;
-		var authData = this.firebaseRefs.facebookRef.getAuth();
+		var authData = this.firebaseRefs.loginRef.getAuth();
 		var authDataCallback = function authDataCallback(authData) {
 			if (authData) {
 				that.setLoginState();
 				console.log("User " + authData.uid + " is logged in with " + authData.provider);
-				$('#fblogin-button').hide();
-				$('#fblogout-button').show();
 			} else {
 				that.setLogoutState();
 				console.log("User is logged out");
-				$('#fblogin-button').show();
-				$('#fblogout-button').hide();
 			}
 		};
-		this.firebaseRefs.facebookRef.onAuth(authDataCallback);
+		this.firebaseRefs.loginRef.onAuth(authDataCallback);
 	},
 
-	handleLoginButton: function () {
-		var facebookRef = this.firebaseRefs.facebookRef;
-		$('#fblogin-button').click(function () {
-			var isLoggedIn = facebookRef.getAuth();
-			if (!isLoggedIn) {
-				facebookRef.authWithOAuthPopup("facebook", function (error) {
-					if (error) {
-						alert("Login Failed!", error);
-					} else {
-						// We'll never get here, as the page will redirect on success.
-					};
-				});
-			} else {
-				console.log("Error: already logged in");
-				alert('Error: already logged in.');
-				// should never get here because login button shouldn't show up
-			};
-		});
+	handleFacebookLoginButton: function () {
+		var loginRef = this.firebaseRefs.loginRef;
+		var isLoggedIn = this.firebaseRefs.loginRef.getAuth();
+		if (!isLoggedIn) {
+			loginRef.authWithOAuthPopup("facebook", function (error) {
+				if (error) {
+					alert("Login Failed!", error);
+				} else {
+					// We'll never get here, as the page will redirect on success.
+				};
+			});
+		} else {
+			console.log("Error: already logged in");
+			alert('Error: already logged in.');
+			// should never get here because login button shouldn't show up
+		};
+	},
 
-		$('#fblogout-button').click(function () {
-			var isLoggedIn = facebookRef.getAuth();
-			if (isLoggedIn) {
-				console.log("User " + isLoggedIn.uid + " is logged in with " + isLoggedIn.provider);
-				facebookRef.unauth();
-				$('#fblogin-button').show();
-				$('#fblogout-button').hide();
-				window.location.reload(true);
-				alert('Log out successful!');
-			} else {
-				console.log("Error: already logged out");
-				alert("Error: already logged out");
-				// should never get here because logout button shouldn't show
-			};
-		});
+	handleLogoutButton: function () {
+		var loginRef = this.firebaseRefs.loginRef;
+		var isLoggedIn = this.firebaseRefs.loginRef.getAuth();
+		if (isLoggedIn) {
+			console.log("User " + isLoggedIn.uid + " is logged in with " + isLoggedIn.provider);
+			loginRef.unauth();
+			$('#fblogin-button').show();
+			$('#fblogout-button').hide();
+			window.location.reload(true);
+			alert('Log out successful!');
+		} else {
+			console.log("Error: already logged out");
+			alert("Error: already logged out");
+			// should never get here because logout button shouldn't show
+		};
 	},
 
 	render: function () {
@@ -25422,15 +25427,19 @@ var Tizzite = React.createClass({
 			return React.createElement(
 				'div',
 				{ className: 'chatClient' },
-				React.createElement(FacebookAuthButton, null)
+				React.createElement(LoginModal, { handleFacebookLoginButton: this.handleFacebookLoginButton })
 			);
 		} else {
 			return React.createElement(
 				'div',
 				{ className: 'chatClient' },
-				React.createElement(FacebookAuthButton, null),
-				React.createElement('img', { src: 'assets/img/tizzite-logo.png' }),
-				React.createElement(MapComponent, { currentUsername: this.state.currentUsername, currentUserId: this.state.currentUserId })
+				React.createElement(
+					'button',
+					{ onClick: this.handleLogoutButton },
+					' Log Out '
+				),
+				React.createElement('img', { src: 'assets/img/tizzite-logo.png', style: { margin: 'relative relative relative relative' } }),
+				React.createElement(MapComponent, { currentUser: this.state.currentUser })
 			);
 		}
 	}
@@ -25445,6 +25454,7 @@ var LoginModal = React.createClass({
 			modalIsOpen: false
 		};
 	},
+
 	openModal: function () {
 		this.setState({ modalIsOpen: true });
 	},
@@ -25470,8 +25480,8 @@ var LoginModal = React.createClass({
 				React.createElement(
 					'div',
 					null,
-					React.createElement('input', { type: 'image', src: 'assets/img/facebook-logo.png', style: { height: '48px', width: '48px' } }),
-					React.createElement('input', { type: 'image', src: 'assets/img/google-logo.png', style: { height: '48px', width: '60px' } })
+					React.createElement('input', { onClick: this.props.handleFacebookLoginButton, type: 'image', src: 'assets/img/facebook-logo.png', style: { height: '48px', width: '48px' } }),
+					React.createElement('input', { id: 'gplus-login-button', type: 'image', src: 'assets/img/google-logo.png', style: { height: '48px', width: '60px' } })
 				)
 			)
 		);
@@ -25524,16 +25534,16 @@ var MapComponent = React.createClass({
 			lng: lng
 		});
 		var eventKey = eventsRef.key();
-		this.createChatroom(eventKey);
+		this.createChatroom(eventKey, owner, ownerId);
 	},
 
-	createChatroom: function (eventKey) {
+	createChatroom: function (eventKey, owner, ownerId) {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom");
 		eventChatroomRef = "firebaseChatroomData" + eventKey;
 		this.bindAsObject(ref, eventChatroomRef);
 		this.firebaseRefs[eventChatroomRef].update({
-			owner: this.props.currentUsername,
-			userId: this.props.currentUserId
+			owner: owner,
+			userId: ownerId
 		});
 	},
 
@@ -25571,7 +25581,15 @@ var MapComponent = React.createClass({
 		var that = this;
 		var eventsNodes = this.state.firebaseEventsData.map(function (theEvent, i) {
 			var accessId = theEvent['.key'];
-			return React.createElement(EventMarker, { lat: theEvent.lat, lng: theEvent.lng, currentUsername: that.props.currentUsername, currentUserId: that.props.currentUserId, owner: theEvent.owner, ownerId: theEvent.ownerId, eventName: theEvent.eventName, eventDesc: theEvent.eventDesc, lat: theEvent.lat, lng: theEvent.lng, accessId: accessId, key: i });
+			return React.createElement(EventMarker, { lat: theEvent.lat,
+				lng: theEvent.lng,
+				currentUser: that.props.currentUser,
+				owner: theEvent.owner,
+				ownerId: theEvent.ownerId,
+				eventName: theEvent.eventName,
+				eventDesc: theEvent.eventDesc,
+				accessId: accessId,
+				key: i });
 		});
 
 		return React.createElement(
@@ -25583,7 +25601,13 @@ var MapComponent = React.createClass({
 					isOpen: this.state.modalIsOpen,
 					style: MODALSTYLES },
 				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
-				React.createElement(CreateEventForm, { lat: this.state.clickedLat, lng: this.state.clickedLng, closeModal: this.closeModal, createEvent: this.createEvent, owner: this.props.currentUsername, ownerId: this.props.currentUserId })
+				React.createElement(CreateEventForm, { lat: this.state.clickedLat,
+					lng: this.state.clickedLng,
+					closeModal: this.closeModal,
+					createEvent: this.createEvent,
+					owner: this.props.currentUser.name,
+					ownerId: this.props.currentUser.id,
+					ownerProfileImageUrl: this.props.currentUser.profileImageURL })
 			),
 			React.createElement(
 				GoogleMap,
@@ -25729,7 +25753,7 @@ var EventMarker = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'chatRoomListItem' },
-			React.createElement(EventModalView, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+			React.createElement(EventModalView, { currentUsername: this.props.currentUser.name, currentUserId: this.props.currentUser.id, owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
 		);
 	}
 });
@@ -26025,7 +26049,11 @@ var ChatroomModalView = React.createClass({
 					isOpen: this.state.modalIsOpen,
 					style: MODALSTYLES },
 				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
-				React.createElement(Chatroom, { currentUsername: this.props.currentUsername, currentUserId: this.props.currentUserId, owner: this.props.owner, ownerId: this.props.ownerId, accessId: this.props.accessId })
+				React.createElement(Chatroom, { currentUsername: this.props.currentUsername,
+					currentUserId: this.props.currentUserId,
+					owner: this.props.owner,
+					ownerId: this.props.ownerId,
+					accessId: this.props.accessId })
 			)
 		);
 	}
@@ -26048,7 +26076,7 @@ var Chatroom = React.createClass({
 	},
 
 	componentDidMount: function () {
-		this.getFacebookRef();
+		this.getLoginRef();
 		this.getMessages();
 		this.getGoersList();
 		// You can define pollInterval as a Chatroom attribute in ReactDom.render
@@ -26066,19 +26094,19 @@ var Chatroom = React.createClass({
 		this.bindAsArray(ref, "fireBaseMessageData");
 	},
 
-	getFacebookRef: function () {
-		var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
-		this.bindAsObject(facebookRef, "facebookRef");
+	getLoginRef: function () {
+		var loginRef = new Firebase("https://tizzite-chat.firebaseio.com/");
+		this.bindAsObject(loginRef, "loginRef");
 	},
 
 	sendMessage: function (message) {
 		var that = this;
-		var facebookAuth = this.firebaseRefs.facebookRef.getAuth();
+		var loginAuth = this.firebaseRefs.loginRef.getAuth();
 		this.firebaseRefs.fireBaseMessageData.push({
 			msg: message,
-			username: facebookAuth.facebook.displayName,
-			userId: facebookAuth.facebook.id,
-			profileImgUrl: facebookAuth.facebook.profileImageURL
+			username: loginAuth.facebook.displayName,
+			userId: loginAuth.facebook.id,
+			profileImgUrl: loginAuth.facebook.profileImageURL
 		});
 	},
 
@@ -26092,7 +26120,7 @@ var Chatroom = React.createClass({
 				null,
 				'T-t-t-tizzite! You are a match!'
 			),
-			React.createElement(ChatWindow, { chatWindowData: this.state.fireBaseMessageData }),
+			React.createElement(ChatWindow, { currentUserId: this.props.currentUserId, chatWindowData: this.state.fireBaseMessageData }),
 			React.createElement(ChatForm, { sendMessage: this.sendMessage })
 		);
 	}
@@ -26151,10 +26179,11 @@ var ChatWindow = React.createClass({
 			height: '300px',
 			overflowY: 'scroll'
 		};
+		var that = this;
 		// Loop through the list of chats and create array of Message components
 		// There needs to be some kind of logic that detects whether the message was sent by you or other people
 		var messageNodes = this.props.chatWindowData.map(function (message, i) {
-			return React.createElement(Message, { username: message.username, key: i, userId: message.userId, message: message.msg, avatar: message.profileImgUrl });
+			return React.createElement(Message, { currentUserId: that.props.currentUserId, username: message.username, key: i, userId: message.userId, message: message.msg, avatar: message.profileImgUrl });
 		});
 		return React.createElement(
 			'div',
@@ -26219,12 +26248,12 @@ var ChatForm = React.createClass({
 var Message = React.createClass({
 	displayName: 'Message',
 
-	// Props: username, userId, message, avatar
+	// Props: currentUserId, username, userId, message, avatar
 	// Components: img (profileImg), a (username)
 	render: function () {
 		var facebookRef = new Firebase("https://tizzite-chat.firebaseio.com/");
 		var facebookAuth = facebookRef.getAuth();
-		if (this.props.userId == facebookAuth.facebook.id) {
+		if (this.props.userId == this.props.currentUserId) {
 			return React.createElement(
 				'div',
 				{ className: 'my-msg-row-container' },
