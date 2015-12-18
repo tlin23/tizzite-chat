@@ -4,6 +4,11 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var Modal = require('react-modal');
 var GoogleMap = require('google-map-react');
+var Navbar = require('react-bootstrap/lib/Navbar');
+var Nav = require('react-bootstrap/lib/Nav');
+var NavItem = require('react-bootstrap/lib/NavItem');
+var NavDropdown = require('react-bootstrap/lib/NavDropdown');
+var MenuItem = require('react-bootstrap/lib/MenuItem');
 
 const MODALSTYLES = {
   content : {
@@ -148,22 +153,22 @@ var Tizzite = React.createClass({
   },
 
 	render: function() {
-		const LOGOSTYLE = {
-			margin : '0 300px',
-			clear  : 'left',
-		}
 		if (this.state.isLoggedIn == false) {
 			return (
 				<div className="chatClient">
-					<LoginModal handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton} />
-					<img src='assets/img/tizzite-logo.png' />
+					<NavbarComponent isLoggedIn={this.state.isLoggedIn} handleLogoutButton={this.handleLogoutButton} handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton}/>
+					<div className='logo-wrapper'>
+						<img className='tizzite-logo' src='assets/img/tizzite-logo.png'/>
+					</div>
 				</div>
 			)
 		} else {
 			return (
 				<div className="chatClient">
-					<button onClick={this.handleLogoutButton}> Log Out </button>
-					<img src='assets/img/tizzite-logo.png' />
+					<NavbarComponent isLoggedIn={this.state.isLoggedIn} handleLogoutButton={this.handleLogoutButton} handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton}/>
+					<div className='logo-wrapper'>
+						<img className='tizzite-logo' src='assets/img/tizzite-logo.png'/>
+					</div>
 					<MapComponent currentUser={this.state.currentUser} />
 				</div>
 			);
@@ -172,6 +177,43 @@ var Tizzite = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var NavbarComponent = React.createClass({
+	render: function() {
+		var loginButton;
+		if (this.props.isLoggedIn == false) {
+			loginButton = <LoginModal handleFacebookLoginButton={this.props.handleFacebookLoginButton} handleGoogleLoginButton={this.props.handleGoogleLoginButton} />
+		} else {
+			loginButton = <button onClick={this.props.handleLogoutButton}> Log Out </button>
+		}
+		return(
+		  <Navbar inverse>
+		    <Navbar.Header>
+		      <Navbar.Brand>
+		        <a href="#">Tizzite</a>
+		      </Navbar.Brand>
+		      <Navbar.Toggle />
+		    </Navbar.Header>
+		    <Navbar.Collapse>
+		      <Nav>
+		        <NavItem eventKey={1} href="#">Link</NavItem>
+		        <NavItem eventKey={2} href="#">Link</NavItem>
+		        <NavDropdown eventKey={3} title="Dropdown" id="basic-nav-dropdown">
+		          <MenuItem eventKey={3.1}>Action</MenuItem>
+		          <MenuItem eventKey={3.2}>Another action</MenuItem>
+		          <MenuItem eventKey={3.3}>Something else here</MenuItem>
+		          <MenuItem divider />
+		          <MenuItem eventKey={3.3}>Separated link</MenuItem>
+		        </NavDropdown>
+		      </Nav>
+		      <Nav pullRight>
+		        <NavItem eventKey={1} href="#">Link Right</NavItem>
+		        <NavItem eventKey={2} href="#">{loginButton}</NavItem>
+		      </Nav>
+		    </Navbar.Collapse>
+		  </Navbar>
+		)
+	}
+})
 
 // LoginModal
 var LoginModal = React.createClass({
@@ -201,7 +243,7 @@ var LoginModal = React.createClass({
 	        <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
 	        <div>
 	        	<input onClick={this.props.handleFacebookLoginButton} type='image' src='assets/img/facebook-logo.png' style={{height: '48px',width: '48px'}}/>
-	        	<input onClick={this.props.handleGoogleLoginButton} id='gplus-login-button' type='image' src='assets/img/google-logo.png' style={{height: '48px',width: '60px'}}/>
+	        	<input onClick={this.props.handleGoogleLoginButton} id='gplus-login-button' type='image' src='assets/img/google-logo.png' style={{height: '48px',width: '48px'}}/>
 	        </div>
 	      </Modal>
       </div>
@@ -293,12 +335,6 @@ var MapComponent = React.createClass({
   },
 
   render: function() {
-		const MAPSTYLE = {
-		    width: '1000px',
-		    height: '600px',
-		    margin: '10px 10px 10px 10px',
-		};
-
 		var that = this;
 		var eventsNodes = this.state.firebaseEventsData.map(function(theEvent, i) {
 			var accessId = theEvent['.key']
@@ -315,7 +351,7 @@ var MapComponent = React.createClass({
 		});
 
     return (
-    	<div style={MAPSTYLE}>
+    	<div className='map-wrapper'>
         <Modal
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
