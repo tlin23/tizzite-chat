@@ -25319,7 +25319,7 @@ const MODALSTYLES = {
 var Tizzite = React.createClass({
 	displayName: 'Tizzite',
 
-	// Components: FacebookAuthButton, CreateModalView, EventsList
+	// Components: LoginModal, MapComponent
 	mixins: [ReactFireMixin],
 
 	getInitialState: function () {
@@ -25476,9 +25476,12 @@ var Tizzite = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// LoginModal
 var LoginModal = React.createClass({
 	displayName: 'LoginModal',
 
+	// Props: handleFacebookLoginButton, handleGoogleLoginButton
+	// Components: Login Button/Modal
 	getInitialState: function () {
 		return {
 			modalIsOpen: false
@@ -25518,11 +25521,15 @@ var LoginModal = React.createClass({
 	}
 });
 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// MapComponent
 var MapComponent = React.createClass({
 	displayName: 'MapComponent',
 
 	mixins: [ReactFireMixin],
 	//Props: currentUser
+	//Components: CreateEventModal, GoogleMap
 	getInitialState: function () {
 		return {
 			firebaseChatroomData: [],
@@ -25648,33 +25655,14 @@ var MapComponent = React.createClass({
 		);
 	}
 });
-
-// // Facebook Log In/Out Button
-var FacebookAuthButton = React.createClass({
-	displayName: 'FacebookAuthButton',
-
-	// Props:
-	// Components
-	render: function () {
-		return React.createElement(
-			'div',
-			{ className: 'faceBookAuth' },
-			React.createElement('input', { type: 'image', id: 'fblogin-button', src: 'assets/img/facebook-logo.png', style: { height: '48px', width: '48px' } }),
-			React.createElement(
-				'button',
-				{ type: 'button', className: 'btn btn-default', 'aria-label': 'Left Align', id: 'fblogout-button' },
-				React.createElement('span', { className: 'glyphicon glyphicon-log-out', 'aria-hidden': 'true' })
-			)
-		);
-	}
-});
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// ******* CURRENTLY UNUSED MAY NEED LATER FOR ALTERNATIVE TO CREATING EVENTS ***********
 // Create Event Modal View
 var CreateEventModalView = React.createClass({
 	displayName: 'CreateEventModalView',
 
-	// Props: createEvent, owner, ownerId,
+	// Props:
 	// Components: button (Create an Event), Modal -> button (close), CreateEventForm
 	getInitialState: function () {
 		return { modalIsOpen: false };
@@ -25713,7 +25701,7 @@ var CreateEventModalView = React.createClass({
 var CreateEventForm = React.createClass({
 	displayName: 'CreateEventForm',
 
-	// Props: closeModal, createEvent, owner, ownerId, lat, lng
+	// Props: lat, lng, closeModal,createEvent, owner
 	// Components: p (Planner), p (Event Name), p (Event Description), button (Create Event)
 	componentDidMount: function () {
 		this.handleCreateEventButton();
@@ -25768,17 +25756,21 @@ var CreateEventForm = React.createClass({
 });
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Events List Item
+// Event Marker
 var EventMarker = React.createClass({
 	displayName: 'EventMarker',
 
-	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, lat, lng accessId
+	// Props: lat, lng, currentUser, owner, eventName, eventDesc,accessId, key
 	// Components: EventModalView
 	render: function () {
 		return React.createElement(
 			'div',
 			{ className: 'chatRoomListItem' },
-			React.createElement(EventModalView, { currentUser: this.props.currentUser, owner: this.props.owner, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+			React.createElement(EventModalView, { currentUser: this.props.currentUser,
+				owner: this.props.owner,
+				eventName: this.props.eventName,
+				eventDesc: this.props.eventDesc,
+				accessId: this.props.accessId })
 		);
 	}
 });
@@ -25788,7 +25780,7 @@ var EventMarker = React.createClass({
 var EventModalView = React.createClass({
 	displayName: 'EventModalView',
 
-	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
+	// Props: currentUsername, owner, eventName, eventDesc, accessId
 	// Components: button (Planner, Event ID), Modal -> button (close), EventDescription
 	getInitialState: function () {
 		return { modalIsOpen: false };
@@ -25830,7 +25822,7 @@ var EventModalView = React.createClass({
 var PlannerEventDescription = React.createClass({
 	displayName: 'PlannerEventDescription',
 
-	// Props: currentUsername, currentUserId, owner, ownerId, eventName, eventDesc, accessId
+	// Props: currentUsername, owner, eventName, eventDesc, accessId
 	// Components: ChatroomModalView
 	mixins: [ReactFireMixin],
 
@@ -25892,10 +25884,14 @@ var GoersList = React.createClass({
 			overflowY: 'scroll'
 		};
 		var goersNodes = this.props.firebaseGoersList.map(function (theGoer, i) {
-			var goerId = theGoer['.key'];
-			var goerApprovalStatus = theGoer['status'];
-			if (goerApprovalStatus == 'pending') {
-				return React.createElement(GoersListItem, { goerId: goerId, goerApprovalStatus: goerApprovalStatus, accessId: that.props.accessId, key: i });
+			if (theGoer.status == 'pending') {
+				var goer = {
+					name: theGoer.name,
+					id: theGoer['.key'],
+					profileImageURL: theGoer.profileImageURL,
+					approvalStatus: theGoer.status
+				};
+				return React.createElement(GoersListItem, { goer: goer, accessId: that.props.accessId, key: i });
 			}
 		});
 
@@ -25921,7 +25917,7 @@ var GoersListItem = React.createClass({
 
 	handleApprovalButtons: function () {
 		var that = this;
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goerId);
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goer.id);
 		$('.approve-button').click(function (event) {
 			ref.update({
 				status: 'approved'
@@ -25938,7 +25934,12 @@ var GoersListItem = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'goersListItem' },
-			this.props.goerId,
+			React.createElement(
+				'a',
+				{ href: this.props.goer.profileImageURL },
+				React.createElement('img', { src: this.props.goer.profileImageURL, style: { width: '36px', height: '36px' } })
+			),
+			this.props.goer.name,
 			React.createElement(
 				'button',
 				{ className: 'approve-button' },
@@ -25958,7 +25959,7 @@ var GoersListItem = React.createClass({
 var GoerEventDescription = React.createClass({
 	displayName: 'GoerEventDescription',
 
-	// Props: currentUsername, currentUserId, ownerId, eventName, eventDesc, accessId
+	// Props: currentUsername, owner, eventName, eventDesc, accessId
 	// Components: ChatroomModalView
 	mixins: [ReactFireMixin],
 
@@ -25993,6 +25994,8 @@ var GoerEventDescription = React.createClass({
 		var that = this;
 		$('#request-to-join').click(function () {
 			that.firebaseRefs.firebaseGoerRequest.set({
+				name: that.props.currentUser.name,
+				profileImageURL: that.props.currentUser.profileImageURL,
 				status: 'pending'
 			});
 			// $('#request-to-join').hide();
@@ -26045,7 +26048,7 @@ var GoerEventDescription = React.createClass({
 var ChatroomModalView = React.createClass({
 	displayName: 'ChatroomModalView',
 
-	// Props: currentUsername, currentUserId, owner, ownerId, accessId
+	// Props: currentUser, owner, accessId
 	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
 	getInitialState: function () {
 		return { modalIsOpen: false };
@@ -26087,7 +26090,7 @@ var ChatroomModalView = React.createClass({
 var Chatroom = React.createClass({
 	displayName: 'Chatroom',
 
-	// Props: currentUsername, currentUserId, owner, ownerId, accessId
+	// Props: currentUser, owner, accessId
 	// Components: ChatHeader, ChatWindow, ChatForm
 	mixins: [ReactFireMixin],
 
@@ -26136,7 +26139,7 @@ var Chatroom = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'chatRoom' },
-			React.createElement(ChatHeader, { firebaseGoersList: this.state.firebaseGoersList }),
+			React.createElement(ChatHeader, { owner: this.props.owner, firebaseGoersList: this.state.firebaseGoersList }),
 			React.createElement(
 				'h2',
 				null,
@@ -26153,6 +26156,18 @@ var Chatroom = React.createClass({
 var ChatHeader = React.createClass({
 	displayName: 'ChatHeader',
 
+	// Props: owner, firebaseGoersList
+	getInitialState: function () {
+		return { modalIsOpen: false };
+	},
+
+	openModal: function () {
+		this.setState({ modalIsOpen: true });
+	},
+
+	closeModal: function () {
+		this.setState({ modalIsOpen: false });
+	},
 	// Props: firebaseGoersList
 	// Components: a (name)
 	render: function () {
@@ -26163,17 +26178,20 @@ var ChatHeader = React.createClass({
 		var goerNodes = this.props.firebaseGoersList.map(function (theGoer, i) {
 			return React.createElement(
 				'a',
-				{ key: i },
-				' ',
-				theGoer['.key'],
-				' '
+				{ href: theGoer.profileImageURL },
+				React.createElement('img', { src: theGoer.profileImageURL, style: { width: '36px', height: '36px' } })
 			);
 		});
 
 		return React.createElement(
 			'div',
 			{ className: 'msg-wgt-header' },
-			'I am place holder'
+			React.createElement(
+				'a',
+				{ href: this.props.owner.profileImageURL },
+				React.createElement('img', { src: this.props.owner.profileImageURL, style: { width: '36px', height: '36px' } })
+			),
+			goerNodes
 		);
 	}
 });
@@ -26183,7 +26201,7 @@ var ChatHeader = React.createClass({
 var ChatWindow = React.createClass({
 	displayName: 'ChatWindow',
 
-	// Props: chatWindowData
+	// Props: chatWindowData, currentUserId
 	// Components: (many) Message
 	componentWillUpdate: function () {
 		var node = ReactDOM.findDOMNode(this);
