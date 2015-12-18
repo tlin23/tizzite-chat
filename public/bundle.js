@@ -25522,7 +25522,7 @@ var MapComponent = React.createClass({
 	displayName: 'MapComponent',
 
 	mixins: [ReactFireMixin],
-	//Props: createEvent, owner, ownerId
+	//Props: currentUser
 	getInitialState: function () {
 		return {
 			firebaseChatroomData: [],
@@ -25554,26 +25554,24 @@ var MapComponent = React.createClass({
 		});
 	},
 
-	createEvent: function (eventName, eventDesc, owner, ownerId, lat, lng) {
+	createEvent: function (eventName, eventDesc, owner, lat, lng) {
 		var eventsRef = this.firebaseRefs.firebaseEventsData.push({
 			owner: owner,
-			ownerId: ownerId,
 			eventName: eventName,
 			eventDesc: eventDesc,
 			lat: lat,
 			lng: lng
 		});
 		var eventKey = eventsRef.key();
-		this.createChatroom(eventKey, owner, ownerId);
+		this.createChatroom(eventKey, owner);
 	},
 
-	createChatroom: function (eventKey, owner, ownerId) {
+	createChatroom: function (eventKey, owner) {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom");
 		eventChatroomRef = "firebaseChatroomData" + eventKey;
 		this.bindAsObject(ref, eventChatroomRef);
 		this.firebaseRefs[eventChatroomRef].update({
-			owner: owner,
-			userId: ownerId
+			owner: owner
 		});
 	},
 
@@ -25615,7 +25613,6 @@ var MapComponent = React.createClass({
 				lng: theEvent.lng,
 				currentUser: that.props.currentUser,
 				owner: theEvent.owner,
-				ownerId: theEvent.ownerId,
 				eventName: theEvent.eventName,
 				eventDesc: theEvent.eventDesc,
 				accessId: accessId,
@@ -25635,9 +25632,7 @@ var MapComponent = React.createClass({
 					lng: this.state.clickedLng,
 					closeModal: this.closeModal,
 					createEvent: this.createEvent,
-					owner: this.props.currentUser.name,
-					ownerId: this.props.currentUser.id,
-					ownerProfileImageUrl: this.props.currentUser.profileImageURL })
+					owner: this.props.currentUser })
 			),
 			React.createElement(
 				GoogleMap,
@@ -25730,7 +25725,7 @@ var CreateEventForm = React.createClass({
 			var eventName = ReactDOM.findDOMNode(that.refs.eventName).value.trim();
 			var eventDesc = ReactDOM.findDOMNode(that.refs.eventDesc).value.trim();
 			if (eventName !== '' && eventDesc !== '') {
-				that.props.createEvent(eventName, eventDesc, that.props.owner, that.props.ownerId, that.props.lat, that.props.lng);
+				that.props.createEvent(eventName, eventDesc, that.props.owner, that.props.lat, that.props.lng);
 				that.props.closeModal();
 			} else {
 				alert('Please enter all fields');
@@ -25746,7 +25741,7 @@ var CreateEventForm = React.createClass({
 				'p',
 				null,
 				' Planner : ',
-				this.props.owner,
+				this.props.owner.name,
 				' '
 			),
 			React.createElement(
@@ -25783,7 +25778,7 @@ var EventMarker = React.createClass({
 		return React.createElement(
 			'div',
 			{ className: 'chatRoomListItem' },
-			React.createElement(EventModalView, { currentUser: this.props.currentUser, owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
+			React.createElement(EventModalView, { currentUser: this.props.currentUser, owner: this.props.owner, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId })
 		);
 	}
 });
@@ -25809,15 +25804,15 @@ var EventModalView = React.createClass({
 
 	render: function () {
 		var eventDescriptionElement;
-		if (this.props.currentUser.id == this.props.ownerId) {
-			eventDescriptionElement = React.createElement(PlannerEventDescription, { currentUser: this.props.currentUser, owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId });
+		if (this.props.currentUser.id == this.props.owner.id) {
+			eventDescriptionElement = React.createElement(PlannerEventDescription, { currentUser: this.props.currentUser, owner: this.props.owner, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId });
 		} else {
-			eventDescriptionElement = React.createElement(GoerEventDescription, { currentUser: this.props.currentUser, owner: this.props.owner, ownerId: this.props.ownerId, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId });
+			eventDescriptionElement = React.createElement(GoerEventDescription, { currentUser: this.props.currentUser, owner: this.props.owner, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId });
 		}
 		return React.createElement(
 			'div',
 			{ className: 'eventModalView' },
-			React.createElement('img', { src: 'assets/img/map-icon.png', onClick: this.openModal, height: '36px', width: '36px' }),
+			React.createElement('img', { src: this.props.owner.profileImageURL, onClick: this.openModal, height: '36px', width: '36px' }),
 			React.createElement(
 				Modal,
 				{
@@ -25868,7 +25863,7 @@ var PlannerEventDescription = React.createClass({
 			'div',
 			{ className: 'plannerEventDescription' },
 			'Planner: ',
-			this.props.owner,
+			this.props.owner.name,
 			React.createElement('br', null),
 			'Event Name: ',
 			this.props.eventName,
@@ -25878,7 +25873,7 @@ var PlannerEventDescription = React.createClass({
 			React.createElement('br', null),
 			React.createElement(GoersList, { firebaseGoersList: this.state.firebaseGoersList, accessId: this.props.accessId }),
 			React.createElement('br', null),
-			React.createElement(ChatroomModalView, { currentUser: this.props.currentUser, owner: this.props.owner, ownerId: this.props.ownerId, accessId: this.props.accessId })
+			React.createElement(ChatroomModalView, { currentUser: this.props.currentUser, owner: this.props.owner, accessId: this.props.accessId })
 		);
 	}
 });
@@ -26032,7 +26027,7 @@ var GoerEventDescription = React.createClass({
 			'div',
 			{ className: 'goerEventDescription' },
 			'Planner: ',
-			this.props.owner,
+			this.props.owner.name,
 			React.createElement('br', null),
 			'EventName: ',
 			this.props.eventName,
@@ -26081,7 +26076,6 @@ var ChatroomModalView = React.createClass({
 				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
 				React.createElement(Chatroom, { currentUser: this.props.currentUser,
 					owner: this.props.owner,
-					ownerId: this.props.ownerId,
 					accessId: this.props.accessId })
 			)
 		);
