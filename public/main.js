@@ -183,31 +183,16 @@ var NavbarComponent = React.createClass({
 		if (this.props.isLoggedIn == false) {
 			loginButton = <LoginModal handleFacebookLoginButton={this.props.handleFacebookLoginButton} handleGoogleLoginButton={this.props.handleGoogleLoginButton} />
 		} else {
-			loginButton = <button onClick={this.props.handleLogoutButton}> Log Out </button>
+			loginButton = <p onClick={this.props.handleLogoutButton}> Log Out </p>
 		}
 		return(
 		  <Navbar inverse>
 		    <Navbar.Header>
-		      <Navbar.Brand>
-		        <a href="#">Tizzite</a>
-		      </Navbar.Brand>
 		      <Navbar.Toggle />
 		    </Navbar.Header>
 		    <Navbar.Collapse>
-		      <Nav>
-		        <NavItem eventKey={1} href="#">Link</NavItem>
-		        <NavItem eventKey={2} href="#">Link</NavItem>
-		        <NavDropdown eventKey={3} title="Dropdown" id="basic-nav-dropdown">
-		          <MenuItem eventKey={3.1}>Action</MenuItem>
-		          <MenuItem eventKey={3.2}>Another action</MenuItem>
-		          <MenuItem eventKey={3.3}>Something else here</MenuItem>
-		          <MenuItem divider />
-		          <MenuItem eventKey={3.3}>Separated link</MenuItem>
-		        </NavDropdown>
-		      </Nav>
 		      <Nav pullRight>
-		        <NavItem eventKey={1} href="#">Link Right</NavItem>
-		        <NavItem eventKey={2} href="#">{loginButton}</NavItem>
+		        <NavItem eventKey={1} href="#">{loginButton}</NavItem>
 		      </Nav>
 		    </Navbar.Collapse>
 		  </Navbar>
@@ -235,7 +220,7 @@ var LoginModal = React.createClass({
   render: function() {
   	return (
   		<div className='loginModal'>
-	  		<button onClick={this.openModal}> Login </button>
+	  		<p onClick={this.openModal}> Login </p>
 	      <Modal
 	        isOpen={this.state.modalIsOpen}
 	        style={MODALSTYLES} >

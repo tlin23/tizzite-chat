@@ -31830,7 +31830,7 @@ var NavbarComponent = React.createClass({
 			loginButton = React.createElement(LoginModal, { handleFacebookLoginButton: this.props.handleFacebookLoginButton, handleGoogleLoginButton: this.props.handleGoogleLoginButton });
 		} else {
 			loginButton = React.createElement(
-				'button',
+				'p',
 				{ onClick: this.props.handleLogoutButton },
 				' Log Out '
 			);
@@ -31841,15 +31841,6 @@ var NavbarComponent = React.createClass({
 			React.createElement(
 				Navbar.Header,
 				null,
-				React.createElement(
-					Navbar.Brand,
-					null,
-					React.createElement(
-						'a',
-						{ href: '#' },
-						'Tizzite'
-					)
-				),
 				React.createElement(Navbar.Toggle, null)
 			),
 			React.createElement(
@@ -31857,54 +31848,10 @@ var NavbarComponent = React.createClass({
 				null,
 				React.createElement(
 					Nav,
-					null,
-					React.createElement(
-						NavItem,
-						{ eventKey: 1, href: '#' },
-						'Link'
-					),
-					React.createElement(
-						NavItem,
-						{ eventKey: 2, href: '#' },
-						'Link'
-					),
-					React.createElement(
-						NavDropdown,
-						{ eventKey: 3, title: 'Dropdown', id: 'basic-nav-dropdown' },
-						React.createElement(
-							MenuItem,
-							{ eventKey: 3.1 },
-							'Action'
-						),
-						React.createElement(
-							MenuItem,
-							{ eventKey: 3.2 },
-							'Another action'
-						),
-						React.createElement(
-							MenuItem,
-							{ eventKey: 3.3 },
-							'Something else here'
-						),
-						React.createElement(MenuItem, { divider: true }),
-						React.createElement(
-							MenuItem,
-							{ eventKey: 3.3 },
-							'Separated link'
-						)
-					)
-				),
-				React.createElement(
-					Nav,
 					{ pullRight: true },
 					React.createElement(
 						NavItem,
 						{ eventKey: 1, href: '#' },
-						'Link Right'
-					),
-					React.createElement(
-						NavItem,
-						{ eventKey: 2, href: '#' },
 						loginButton
 					)
 				)
@@ -31937,7 +31884,7 @@ var LoginModal = React.createClass({
 			'div',
 			{ className: 'loginModal' },
 			React.createElement(
-				'button',
+				'p',
 				{ onClick: this.openModal },
 				' Login '
 			),
