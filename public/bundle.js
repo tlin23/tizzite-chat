@@ -31802,6 +31802,11 @@ var Tizzite = React.createClass({
 					'div',
 					{ className: 'logo-wrapper' },
 					React.createElement('img', { className: 'tizzite-logo', src: 'assets/img/tizzite-logo.png' })
+				),
+				React.createElement(
+					'div',
+					{ className: 'intro-wrapper' },
+					React.createElement(IntroComponent, { handleFacebookLoginButton: this.handleFacebookLoginButton, handleGoogleLoginButton: this.handleGoogleLoginButton })
 				)
 			);
 		} else {
@@ -31821,6 +31826,69 @@ var Tizzite = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var IntroComponent = React.createClass({
+	displayName: 'IntroComponent',
+
+	render: function () {
+		return React.createElement(
+			'div',
+			{ className: 'intro-text' },
+			React.createElement(
+				'p',
+				null,
+				' "What is Tizzite? '
+			),
+			React.createElement(
+				'p',
+				null,
+				' Tizzite is a traveller\'s dream. '
+			),
+			React.createElement(
+				'p',
+				null,
+				' Tizzite is an event-oriented social application aimed to connect people who are looking for others to do activities with. '
+			),
+			React.createElement('br', null),
+			React.createElement(
+				'p',
+				null,
+				' How to use Tizzite? '
+			),
+			React.createElement(
+				'p',
+				null,
+				' As a Planner, you can create an event by clicking on a location on Google Map. '
+			),
+			React.createElement(
+				'p',
+				null,
+				' After you create an event, an icon will appear on the Google Map for anyone to see '
+			),
+			React.createElement(
+				'p',
+				null,
+				' As a Goer, you are able to see all these events and request to join any event '
+			),
+			React.createElement(
+				'p',
+				null,
+				' If the events Planner approves, you may begin chatting right away! '
+			),
+			React.createElement(
+				'p',
+				null,
+				' Log in now and start using Tizzite!" '
+			),
+			React.createElement(
+				'div',
+				null,
+				React.createElement('input', { onClick: this.props.handleFacebookLoginButton, type: 'image', src: 'assets/img/facebook-logo.png', style: { height: '48px', width: '48px' } }),
+				React.createElement('input', { onClick: this.props.handleGoogleLoginButton, id: 'gplus-login-button', type: 'image', src: 'assets/img/google-logo.png', style: { height: '48px', width: '48px' } })
+			)
+		);
+	}
+});
+
 var NavbarComponent = React.createClass({
 	displayName: 'NavbarComponent',
 
@@ -31832,7 +31900,7 @@ var NavbarComponent = React.createClass({
 			loginButton = React.createElement(
 				'p',
 				{ onClick: this.props.handleLogoutButton },
-				' Log Out '
+				' LOG OUT '
 			);
 		}
 		return React.createElement(
@@ -31886,7 +31954,7 @@ var LoginModal = React.createClass({
 			React.createElement(
 				'p',
 				{ onClick: this.openModal },
-				' Login '
+				' LOG IN '
 			),
 			React.createElement(
 				Modal,
