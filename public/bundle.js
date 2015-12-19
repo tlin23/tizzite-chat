@@ -31841,12 +31841,12 @@ var IntroComponent = React.createClass({
 			React.createElement(
 				'p',
 				null,
-				' Tizzite is a traveller\'s dream. '
+				' - Tizzite is a traveller\'s dream. '
 			),
 			React.createElement(
 				'p',
 				null,
-				' Tizzite is an event-oriented social application aimed to connect people who are looking for others to do activities with. '
+				' - Tizzite is an event-oriented social application aimed to connect people who are looking for others to do activities with. '
 			),
 			React.createElement('br', null),
 			React.createElement(
@@ -31857,23 +31857,24 @@ var IntroComponent = React.createClass({
 			React.createElement(
 				'p',
 				null,
-				' As a Planner, you can create an event by clicking on a location on Google Map. '
+				' - As a Planner, you can create an event by clicking on a location on Google Map. '
 			),
 			React.createElement(
 				'p',
 				null,
-				' After you create an event, an icon will appear on the Google Map for anyone to see '
+				' - After you create an event, an icon will appear on the Google Map for anyone to see '
 			),
 			React.createElement(
 				'p',
 				null,
-				' As a Goer, you are able to see all these events and request to join any event '
+				' - As a Goer, you are able to see all these events and request to join any event '
 			),
 			React.createElement(
 				'p',
 				null,
-				' If the events Planner approves, you may begin chatting right away! '
+				' - If the events Planner approves, you may begin chatting right away! '
 			),
+			React.createElement('br', null),
 			React.createElement(
 				'p',
 				null,

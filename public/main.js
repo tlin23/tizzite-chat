@@ -185,14 +185,15 @@ var IntroComponent = React.createClass({
 		return (
 			<div className='intro-text'>
 				<p> "What is Tizzite? </p>
-				<p> Tizzite is a traveller's dream. </p>
-				<p> Tizzite is an event-oriented social application aimed to connect people who are looking for others to do activities with. </p>
+				<p> - Tizzite is a traveller's dream. </p>
+				<p> - Tizzite is an event-oriented social application aimed to connect people who are looking for others to do activities with. </p>
 				<br/>
 				<p> How to use Tizzite? </p>
-				<p> As a Planner, you can create an event by clicking on a location on Google Map. </p>
-				<p> After you create an event, an icon will appear on the Google Map for anyone to see </p>
-				<p> As a Goer, you are able to see all these events and request to join any event </p>
-				<p> If the events Planner approves, you may begin chatting right away! </p>
+				<p> - As a Planner, you can create an event by clicking on a location on Google Map. </p>
+				<p> - After you create an event, an icon will appear on the Google Map for anyone to see </p>
+				<p> - As a Goer, you are able to see all these events and request to join any event </p>
+				<p> - If the events Planner approves, you may begin chatting right away! </p>
+				<br/>
 				<p> Log in now and start using Tizzite!" </p>
         <div>
         	<input onClick={this.props.handleFacebookLoginButton} type='image' src='assets/img/facebook-logo.png' style={{height: '48px',width: '48px'}}/>
