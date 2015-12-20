@@ -180,6 +180,36 @@ var Tizzite = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
+var SearchBox = React.createClass({
+	propTypes : {
+		placeholder: React.PropTypes.string,
+		onPlacesChanged: React.PropTypes.func
+	},
+
+	render: function() {
+		return (
+			<input ref="input" placeholder='Find a place' type="text"/>
+ 		)
+	},
+
+	onPlacesChanged: function() {
+		if (this.props.onPlacesChanges) {
+			this.props.onPlacesChanged(this.searchBox.getPlaces());
+		}
+	},
+
+	componentDidMount: function() {
+		var input = ReactDOM.findDOMNode(this.refs.input);
+		this.searchBox = new google.maps.places.SearchBox(input);
+		this.searchBox.addListener('places_changed', this.onPlacesChanged);
+	},
+
+	componentWillUnmount: function() {
+		this.searchBox.removeListener('places_changed', this.onPlacesChanged);
+	}
+})
+
+//////////////////////////////////////////////////////////////////////////////////////////
 var IntroComponent = React.createClass({
 	render: function(){
 		return (
@@ -266,7 +296,7 @@ var LoginModal = React.createClass({
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// MapComponent
+// Map Component
 var MapComponent = React.createClass({
 	mixins: [ReactFireMixin],
 	//Props: currentUser
@@ -465,7 +495,7 @@ var EventMarker = React.createClass({
 	// Components: EventModalView
 	render: function() {
 		return (
-			<div className="chatRoomListItem">
+			<div className="eventMarker">
 				<EventModalView currentUser={this.props.currentUser} 
 												owner={this.props.owner} 
 												eventName={this.props.eventName} 
@@ -494,6 +524,14 @@ var EventModalView = React.createClass({
   },
 
   render: function() {
+  	const MARKER_SIZE = 40;
+		const eventMarkerStyle = {
+		  position: 'absolute',
+		  width: MARKER_SIZE,
+		  height: MARKER_SIZE,
+		  left: -MARKER_SIZE / 2,
+		  top: -MARKER_SIZE / 2
+		}
   	var eventDescriptionElement;
   	if (this.props.currentUser.id == this.props.owner.id) {
   		eventDescriptionElement = <PlannerEventDescription currentUser={this.props.currentUser} owner={this.props.owner} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />
@@ -502,7 +540,7 @@ var EventModalView = React.createClass({
   	}
     return (
       <div className='eventModalView'>
-        <img src={this.props.owner.profileImageURL} onClick={this.openModal} height='36px' width='36px'/>
+        <img src={this.props.owner.profileImageURL} onClick={this.openModal} style={eventMarkerStyle} />
         <Modal
           isOpen={this.state.modalIsOpen}
           style={MODALSTYLES} >
