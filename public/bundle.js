@@ -31659,6 +31659,15 @@ const MODALSTYLES = {
 	}
 };
 
+const MARKER_SIZE = 40;
+const eventMarkerStyle = {
+	position: 'absolute',
+	width: MARKER_SIZE,
+	height: MARKER_SIZE,
+	left: -MARKER_SIZE / 2,
+	top: -MARKER_SIZE / 2
+};
+
 // Components
 // Tizzite Client
 var Tizzite = React.createClass({
@@ -32001,8 +32010,29 @@ var MapComponent = React.createClass({
 		// var input = ReactDOM.findDOMNode(this.refs.input);
 		// var searchBox = new google.maps.places.Autocomplete(input);
 		var places = this.searchBox.getPlaces();
+		if (places.length <= 0) {
+			alert('Sorry no match found');
+		}
 		this.setState({
 			searchResult: places
+		});
+	},
+
+	handleSearchBox: function (event) {
+		if (event.keyCode === 13) {
+			var places = this.searchBox.getPlaces();
+			if (places.length <= 0) {
+				alert('Sorry no match found');
+			}
+			this.setState({
+				searchResult: places
+			});
+		}
+	},
+
+	clearSearchResult: function () {
+		this.setState({
+			searchResult: []
 		});
 	},
 
@@ -32109,7 +32139,12 @@ var MapComponent = React.createClass({
 			React.createElement(
 				'div',
 				{ className: 'searchbox-wrapper' },
-				React.createElement('input', { id: 'searchbox', ref: 'input', placeholder: 'Find a place', type: 'text' })
+				React.createElement('input', { id: 'searchbox', ref: 'input', onKeyDown: this.handleSearchBox, style: { float: 'left' }, placeholder: 'Find a place', type: 'text' }),
+				React.createElement(
+					'button',
+					{ id: 'searchResultClear', onClick: this.clearSearchResult, style: { float: 'right' } },
+					' Clear '
+				)
 			),
 			React.createElement(
 				'div',
@@ -32150,18 +32185,10 @@ var SearchResultMarker = React.createClass({
 	displayName: 'SearchResultMarker',
 
 	render: function () {
-		const MARKER_SIZE = 40;
-		const eventMarkerStyle = {
-			position: 'absolute',
-			width: MARKER_SIZE,
-			height: MARKER_SIZE,
-			left: -MARKER_SIZE / 2,
-			top: -MARKER_SIZE / 2
-		};
 		return React.createElement(
 			'div',
 			null,
-			React.createElement('img', { src: 'assets/img/map-icon.png', style: eventMarkerStyle })
+			React.createElement('img', { className: 'search-result-marker', src: 'assets/img/map-icon.png', style: eventMarkerStyle })
 		);
 	}
 });
@@ -32304,14 +32331,6 @@ var EventModalView = React.createClass({
 	},
 
 	render: function () {
-		const MARKER_SIZE = 40;
-		const eventMarkerStyle = {
-			position: 'absolute',
-			width: MARKER_SIZE,
-			height: MARKER_SIZE,
-			left: -MARKER_SIZE / 2,
-			top: -MARKER_SIZE / 2
-		};
 		var eventDescriptionElement;
 		if (this.props.currentUser.id == this.props.owner.id) {
 			eventDescriptionElement = React.createElement(PlannerEventDescription, { currentUser: this.props.currentUser, owner: this.props.owner, eventName: this.props.eventName, eventDesc: this.props.eventDesc, accessId: this.props.accessId });

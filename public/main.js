@@ -21,6 +21,15 @@ const MODALSTYLES = {
   }
 };
 
+const MARKER_SIZE = 40;
+const eventMarkerStyle = {
+  position: 'absolute',
+  width: MARKER_SIZE,
+  height: MARKER_SIZE,
+  left: -MARKER_SIZE / 2,
+  top: -MARKER_SIZE / 2,
+}
+
 // Components
 // Tizzite Client
 var Tizzite = React.createClass({
@@ -290,8 +299,29 @@ var MapComponent = React.createClass({
 		// var input = ReactDOM.findDOMNode(this.refs.input);
 		// var searchBox = new google.maps.places.Autocomplete(input);
 		var places = this.searchBox.getPlaces();
+		if (places.length <= 0) {
+			alert('Sorry no match found')
+		}
 		this.setState({
 			searchResult: places
+		})
+	},
+
+	handleSearchBox: function(event) {
+		if (event.keyCode === 13) {
+			var places = this.searchBox.getPlaces();
+			if (places.length <= 0) {
+				alert('Sorry no match found')
+			}
+			this.setState({
+				searchResult: places
+			})
+		}
+	},
+
+	clearSearchResult: function() {
+		this.setState({
+			searchResult: []
 		})
 	},
 
@@ -399,7 +429,8 @@ var MapComponent = React.createClass({
     return (
     	<div>
     		<div className='searchbox-wrapper'>
-	    		<input id='searchbox' ref="input" placeholder='Find a place' type="text"/>
+	    		<input id='searchbox' ref="input" onKeyDown={this.handleSearchBox} style={{float:'left'}} placeholder='Find a place' type="text"/>
+	    		<button id='searchResultClear' onClick={this.clearSearchResult} style={{float:'right'}}> Clear </button>
 	    	</div>
 	    	<div className='map-wrapper'>
 	        <Modal
@@ -435,17 +466,9 @@ var MapComponent = React.createClass({
 
 var SearchResultMarker = React.createClass({
 	render: function() {
-  	const MARKER_SIZE = 40;
-		const eventMarkerStyle = {
-		  position: 'absolute',
-		  width: MARKER_SIZE,
-		  height: MARKER_SIZE,
-		  left: -MARKER_SIZE / 2,
-		  top: -MARKER_SIZE / 2
-		}
 		return(
 			<div>
-				<img src='assets/img/map-icon.png' style={eventMarkerStyle}/>
+				<img className='search-result-marker' src='assets/img/map-icon.png' style={eventMarkerStyle}/>
 			</div>
 		)
 	}
@@ -554,14 +577,6 @@ var EventModalView = React.createClass({
   },
 
   render: function() {
-  	const MARKER_SIZE = 40;
-		const eventMarkerStyle = {
-		  position: 'absolute',
-		  width: MARKER_SIZE,
-		  height: MARKER_SIZE,
-		  left: -MARKER_SIZE / 2,
-		  top: -MARKER_SIZE / 2
-		}
   	var eventDescriptionElement;
   	if (this.props.currentUser.id == this.props.owner.id) {
   		eventDescriptionElement = <PlannerEventDescription currentUser={this.props.currentUser} owner={this.props.owner} eventName={this.props.eventName} eventDesc={this.props.eventDesc} accessId={this.props.accessId} />

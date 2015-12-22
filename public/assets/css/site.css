@@ -15,7 +15,12 @@ html, body {
 
 .searchbox-wrapper #searchbox {
   height: 100%;
-  width: 100%;
+  width: 80%;
+}
+
+.searchbox-wrapper #searchResultClear {
+  height:100%;
+  width:20%;
 }
 
 .map-wrapper {
@@ -47,4 +52,8 @@ html, body {
   height: 100%;
   width: 100%;
   margin-top: 15px;
+}
+
+.search-result-marker {
+  z-index: 3;
 }
