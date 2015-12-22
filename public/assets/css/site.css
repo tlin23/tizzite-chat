@@ -4,6 +4,20 @@ html, body {
   background-color: #ebd0ff;
 }
 
+.searchbox-wrapper {
+  width  : 300px;
+  height : 48px;
+  margin-right: auto;
+  margin-left: auto;
+  margin-bottom: 15px;
+  border : 5px solid #663300;
+}
+
+.searchbox-wrapper #searchbox {
+  height: 100%;
+  width: 100%;
+}
+
 .map-wrapper {
   width  : 1000px;
   height : 600px;
@@ -32,5 +46,5 @@ html, body {
 .tizzite-logo {
   height: 100%;
   width: 100%;
-  margin: 15px 15px 15px 15px;
+  margin-top: 15px;
 }

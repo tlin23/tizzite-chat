@@ -31991,7 +31991,9 @@ var MapComponent = React.createClass({
 			modalIsOpen: false,
 			clickedLat: null,
 			clickedLng: null,
-			searchResult: []
+			searchResult: [],
+			mapCenter: this.props.defaultCenter,
+			mapZoom: this.props.defaultZoom
 		};
 	},
 
@@ -32060,6 +32062,11 @@ var MapComponent = React.createClass({
 				clickedLng: clickedEvent.lng
 			});
 			this.openModal();
+		} else {
+			this.setState({
+				mapCenter: { lat: clickedEvent.lat, lng: clickedEvent.lng },
+				mapZoom: 16
+			});
 		}
 	},
 
@@ -32072,8 +32079,7 @@ var MapComponent = React.createClass({
 			key: 'AIzaSyAC_GzpyatkGZlZYLCfTKhiLsYcsei1Xas',
 			language: 'eng',
 			center: { lat: 49.2827, lng: -123.1207 },
-			zoom: 12,
-			greatPlaceCoords: { lat: 49.2827, lng: -123.1207 }
+			zoom: 12
 		};
 	},
 
@@ -32099,31 +32105,41 @@ var MapComponent = React.createClass({
 
 		return React.createElement(
 			'div',
-			{ className: 'map-wrapper' },
+			null,
 			React.createElement(
-				Modal,
-				{
-					isOpen: this.state.modalIsOpen,
-					style: MODALSTYLES },
-				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
-				React.createElement(CreateEventForm, { lat: this.state.clickedLat,
-					lng: this.state.clickedLng,
-					closeModal: this.closeModal,
-					createEvent: this.createEvent,
-					owner: this.props.currentUser })
+				'div',
+				{ className: 'searchbox-wrapper' },
+				React.createElement('input', { id: 'searchbox', ref: 'input', placeholder: 'Find a place', type: 'text' })
 			),
-			React.createElement('input', { ref: 'input', placeholder: 'Find a place', type: 'text' }),
 			React.createElement(
-				GoogleMap,
-				{
-					key: this.props.key,
-					language: this.props.language,
-					defaultCenter: this.props.center,
-					defaultZoom: this.props.zoom,
-					onChildClick: this.onChildClick,
-					onClick: this.handleMapOnClick },
-				searchResultNodes,
-				eventsNodes
+				'div',
+				{ className: 'map-wrapper' },
+				React.createElement(
+					Modal,
+					{
+						isOpen: this.state.modalIsOpen,
+						style: MODALSTYLES },
+					React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeModal }),
+					React.createElement(CreateEventForm, { lat: this.state.clickedLat,
+						lng: this.state.clickedLng,
+						closeModal: this.closeModal,
+						createEvent: this.createEvent,
+						owner: this.props.currentUser })
+				),
+				React.createElement(
+					GoogleMap,
+					{
+						key: this.props.key,
+						language: this.props.language,
+						defaultCenter: this.props.center,
+						center: this.state.mapCenter,
+						defaultZoom: this.props.zoom,
+						zoom: this.state.mapZoom,
+						onChildClick: this.onChildClick,
+						onClick: this.handleMapOnClick },
+					searchResultNodes,
+					eventsNodes
+				)
 			)
 		);
 	}
@@ -32134,10 +32150,18 @@ var SearchResultMarker = React.createClass({
 	displayName: 'SearchResultMarker',
 
 	render: function () {
+		const MARKER_SIZE = 40;
+		const eventMarkerStyle = {
+			position: 'absolute',
+			width: MARKER_SIZE,
+			height: MARKER_SIZE,
+			left: -MARKER_SIZE / 2,
+			top: -MARKER_SIZE / 2
+		};
 		return React.createElement(
 			'div',
 			null,
-			React.createElement('img', { src: 'assets/img/map-icon.png' })
+			React.createElement('img', { src: 'assets/img/map-icon.png', style: eventMarkerStyle })
 		);
 	}
 });
