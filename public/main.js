@@ -180,34 +180,6 @@ var Tizzite = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
-var SearchBox = React.createClass({
-	propTypes : {
-		placeholder: React.PropTypes.string,
-		onPlacesChanged: React.PropTypes.func
-	},
-
-	render: function() {
-		return (
-			<input ref="input" placeholder='Find a place' type="text"/>
- 		)
-	},
-
-	onPlacesChanged: function() {
-		if (this.props.onPlacesChanges) {
-			this.props.onPlacesChanged(this.searchBox.getPlaces());
-		}
-	},
-
-	componentDidMount: function() {
-		var input = ReactDOM.findDOMNode(this.refs.input);
-		this.searchBox = new google.maps.places.SearchBox(input);
-		this.searchBox.addListener('places_changed', this.onPlacesChanged);
-	},
-
-	componentWillUnmount: function() {
-		this.searchBox.removeListener('places_changed', this.onPlacesChanged);
-	}
-})
 
 //////////////////////////////////////////////////////////////////////////////////////////
 var IntroComponent = React.createClass({
@@ -307,12 +279,29 @@ var MapComponent = React.createClass({
 			firebaseEventsData: [],
 			modalIsOpen: false,
 			clickedLat: null,
-			clickedLng: null
+			clickedLng: null,
+			searchResult: []
 		};
+	},
+
+	onPlacesChanged: function() {
+		// var input = ReactDOM.findDOMNode(this.refs.input);
+		// var searchBox = new google.maps.places.Autocomplete(input);
+		var places = this.searchBox.getPlaces();
+		this.setState({
+			searchResult: places
+		})
 	},
 
 	componentDidMount: function() {
 		this.getEvents();
+		var input = ReactDOM.findDOMNode(this.refs.input);
+		this.searchBox = new google.maps.places.SearchBox(input);
+		this.searchBox.addListener('places_changed', this.onPlacesChanged);
+	},
+
+	componentWillUnmount: function() {
+		this.searchBox.removeListener('places_changed', this.onPlacesChanged);
 	},
 
 	getEvents: function() {
@@ -393,6 +382,14 @@ var MapComponent = React.createClass({
 			);
 		});
 
+		var searchResultNodes = this.state.searchResult.map(function(result, i) {
+			var lat = result.geometry.location.lat()
+			var lng = result.geometry.location.lng()
+			return (
+				<SearchResultMarker lat={lat} lng={lng} key={i} />
+			);
+		})
+
     return (
     	<div className='map-wrapper'>
         <Modal
@@ -406,6 +403,7 @@ var MapComponent = React.createClass({
           								 createEvent={this.createEvent} 
           								 owner={this.props.currentUser} />
         </Modal>
+        <input ref="input" placeholder='Find a place' type="text"/>
 	      <GoogleMap
 	       	key = {this.props.key}
 	       	language = {this.props.language}
@@ -413,6 +411,7 @@ var MapComponent = React.createClass({
 	        defaultZoom={this.props.zoom}
 	        onChildClick={this.onChildClick}
 	        onClick={this.handleMapOnClick}>
+	        {searchResultNodes}
 	        {eventsNodes}
 	      </GoogleMap>
 	    </div>
@@ -420,6 +419,17 @@ var MapComponent = React.createClass({
   }
 })
 //////////////////////////////////////////////////////////////////////////////////////////
+
+
+var SearchResultMarker = React.createClass({
+	render: function() {
+		return(
+			<div>
+				<img src='assets/img/map-icon.png'/>
+			</div>
+		)
+	}
+})
 
 // ******* CURRENTLY UNUSED MAY NEED LATER FOR ALTERNATIVE TO CREATING EVENTS ***********
 // Create Event Modal View

@@ -31826,35 +31826,6 @@ var Tizzite = React.createClass({
 });
 //////////////////////////////////////////////////////////////////////////////////////////
 
-var SearchBox = React.createClass({
-	displayName: 'SearchBox',
-
-	propTypes: {
-		placeholder: React.PropTypes.string,
-		onPlacesChanged: React.PropTypes.func
-	},
-
-	render: function () {
-		return React.createElement('input', { ref: 'input', placeholder: 'Find a place', type: 'text' });
-	},
-
-	onPlacesChanged: function () {
-		if (this.props.onPlacesChanges) {
-			this.props.onPlacesChanged(this.searchBox.getPlaces());
-		}
-	},
-
-	componentDidMount: function () {
-		var input = ReactDOM.findDOMNode(this.refs.input);
-		this.searchBox = new google.maps.places.SearchBox(input);
-		this.searchBox.addListener('places_changed', this.onPlacesChanged);
-	},
-
-	componentWillUnmount: function () {
-		this.searchBox.removeListener('places_changed', this.onPlacesChanged);
-	}
-});
-
 //////////////////////////////////////////////////////////////////////////////////////////
 var IntroComponent = React.createClass({
 	displayName: 'IntroComponent',
@@ -32019,12 +31990,29 @@ var MapComponent = React.createClass({
 			firebaseEventsData: [],
 			modalIsOpen: false,
 			clickedLat: null,
-			clickedLng: null
+			clickedLng: null,
+			searchResult: []
 		};
+	},
+
+	onPlacesChanged: function () {
+		// var input = ReactDOM.findDOMNode(this.refs.input);
+		// var searchBox = new google.maps.places.Autocomplete(input);
+		var places = this.searchBox.getPlaces();
+		this.setState({
+			searchResult: places
+		});
 	},
 
 	componentDidMount: function () {
 		this.getEvents();
+		var input = ReactDOM.findDOMNode(this.refs.input);
+		this.searchBox = new google.maps.places.SearchBox(input);
+		this.searchBox.addListener('places_changed', this.onPlacesChanged);
+	},
+
+	componentWillUnmount: function () {
+		this.searchBox.removeListener('places_changed', this.onPlacesChanged);
 	},
 
 	getEvents: function () {
@@ -32103,6 +32091,12 @@ var MapComponent = React.createClass({
 				key: i });
 		});
 
+		var searchResultNodes = this.state.searchResult.map(function (result, i) {
+			var lat = result.geometry.location.lat();
+			var lng = result.geometry.location.lng();
+			return React.createElement(SearchResultMarker, { lat: lat, lng: lng, key: i });
+		});
+
 		return React.createElement(
 			'div',
 			{ className: 'map-wrapper' },
@@ -32118,6 +32112,7 @@ var MapComponent = React.createClass({
 					createEvent: this.createEvent,
 					owner: this.props.currentUser })
 			),
+			React.createElement('input', { ref: 'input', placeholder: 'Find a place', type: 'text' }),
 			React.createElement(
 				GoogleMap,
 				{
@@ -32127,12 +32122,25 @@ var MapComponent = React.createClass({
 					defaultZoom: this.props.zoom,
 					onChildClick: this.onChildClick,
 					onClick: this.handleMapOnClick },
+				searchResultNodes,
 				eventsNodes
 			)
 		);
 	}
 });
 //////////////////////////////////////////////////////////////////////////////////////////
+
+var SearchResultMarker = React.createClass({
+	displayName: 'SearchResultMarker',
+
+	render: function () {
+		return React.createElement(
+			'div',
+			null,
+			React.createElement('img', { src: 'assets/img/map-icon.png' })
+		);
+	}
+});
 
 // ******* CURRENTLY UNUSED MAY NEED LATER FOR ALTERNATIVE TO CREATING EVENTS ***********
 // Create Event Modal View
