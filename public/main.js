@@ -186,7 +186,7 @@ var Tizzite = React.createClass({
 						<img className='tizzite-logo' src='assets/img/tizzite-logo.png'/>
 					</div>
 					<MapComponent currentUser={this.state.currentUser} firebaseEventsData={this.state.firebaseEventsData} createEvent={this.createEvent} createChatroom={this.createChatroom} />
-					<MyEvents currentUser={this.state.currentUser} />
+					<MyEvents currentUser={this.state.currentUser} firebaseEventsData={this.state.firebaseEventsData} />
 				</div>
 			);
 		}

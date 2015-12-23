@@ -32714,7 +32714,6 @@ const eventMarkerStyle = {
 var MapComponent = React.createClass({
 	displayName: 'MapComponent',
 
-	mixins: [ReactFireMixin],
 	//Props: currentUser
 	//Components: CreateEventModal, GoogleMap
 	getInitialState: function () {
@@ -33004,7 +33003,6 @@ var MyEvents = React.createClass({
 
 	getInitialState: function () {
 		return {
-			firebaseEventsData: [],
 			isOpen: false
 		};
 	},
@@ -33021,21 +33019,12 @@ var MyEvents = React.createClass({
 		});
 	},
 
-	componentDidMount: function () {
-		this.getEvents();
-	},
-
-	getEvents: function () {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/");
-		this.bindAsArray(ref, "firebaseEventsData");
-	},
-
 	render: function () {
 		// Inline styles in React
 		var that = this;
 		// Loop through the list of chats and create array of Message components
 		// There needs to be some kind of logic that detects whether the message was sent by you or other people
-		var eventNodes = this.state.firebaseEventsData.map(function (theEvent, i) {
+		var eventNodes = this.props.firebaseEventsData.map(function (theEvent, i) {
 			var accessId = theEvent['.key'];
 			if (theEvent.owner.id == that.props.currentUser.id) {
 				return React.createElement(
@@ -33590,7 +33579,7 @@ var Tizzite = React.createClass({
 					React.createElement('img', { className: 'tizzite-logo', src: 'assets/img/tizzite-logo.png' })
 				),
 				React.createElement(MapComponent, { currentUser: this.state.currentUser, firebaseEventsData: this.state.firebaseEventsData, createEvent: this.createEvent, createChatroom: this.createChatroom }),
-				React.createElement(MyEvents, { currentUser: this.state.currentUser })
+				React.createElement(MyEvents, { currentUser: this.state.currentUser, firebaseEventsData: this.state.firebaseEventsData })
 			);
 		}
 	}

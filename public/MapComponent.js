@@ -30,7 +30,6 @@ const eventMarkerStyle = {
 
 // Map Component
 var MapComponent = React.createClass({
-	mixins: [ReactFireMixin],
 	//Props: currentUser
 	//Components: CreateEventModal, GoogleMap
 	getInitialState: function() {
