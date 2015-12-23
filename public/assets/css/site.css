@@ -4,6 +4,16 @@ html, body {
   background-color: #ebd0ff;
 }
 
+.eventNavBar {
+  position: fixed;
+  bottom: 0;
+  width : 100%;
+}
+
+.eventDropupView {
+  float: right;
+}
+
 .searchbox-wrapper {
   width  : 300px;
   height : 48px;
