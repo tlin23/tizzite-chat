@@ -2,7 +2,7 @@ var React = require('react');
 var Chatroom = require('./Chatroom');
 var Modal = require('react-modal');
 var ButtonToolbar = require('react-bootstrap/lib/ButtonToolbar');
-var SplitButton = require('react-bootstrap/lib/SplitButton');
+var DropdownButton = require('react-bootstrap/lib/DropdownButton');
 var MenuItem = require('react-bootstrap/lib/MenuItem');
 var PlannerEventDescription = require('./PlannerEventDescription')
 
@@ -12,7 +12,20 @@ var MyEvents = React.createClass({
 	getInitialState: function() {
 		return {
 			firebaseEventsData: [],
+			isOpen: false
 		};
+	},
+
+	keepOpen: function(e) {
+		this.setState({
+			isOpen: true
+		})
+	},
+
+	closeDropup: function() {
+		this.setState({
+			isOpen: false
+		})
 	},
 
 	componentDidMount: function() {
@@ -33,14 +46,15 @@ var MyEvents = React.createClass({
     	var accessId = theEvent['.key']
     	if (theEvent.owner.id == that.props.currentUser.id){
 	      return (
-	      	<SplitButton key={i} title={theEvent.eventName} dropup id="split-button-dropup">
-	      			<PlannerEventDescription currentUser={that.props.currentUser} 
-																			 owner={theEvent.owner} 
-																			 eventName={theEvent.eventName} 
-																			 eventDesc={theEvent.eventDesc} 
-																			 accessId={accessId} 
-																			 key={i}/>
-	      	</SplitButton>
+	      	<DropdownButton open={that.state.isOpen} onToggle={that.keepOpen} key={i} title={theEvent.eventName} dropup noCaret id="split-button-dropup">
+	      			<EventDropup	closeDropup={that.closeDropup}
+	      										currentUser={that.props.currentUser} 
+														owner={theEvent.owner} 
+														eventName={theEvent.eventName} 
+														eventDesc={theEvent.eventDesc} 
+														accessId={accessId} 
+														key={i}/>
+	      	</DropdownButton>
 	      );
     	}	
     });
@@ -51,5 +65,22 @@ var MyEvents = React.createClass({
     );
   }
 })
+
+
+var EventDropup = React.createClass({
+	render: function() {
+		return(
+			<div>
+				<button className='glyphicon glyphicon-remove-circle' onClick={this.props.closeDropup}></button>
+				<PlannerEventDescription currentUser={this.props.currentUser} 
+																				 owner={this.props.owner} 
+																				 eventName={this.props.eventName} 
+																				 eventDesc={this.props.eventDesc} 
+																				 accessId={this.propsaccessId}/>
+			</div>
+		)
+	}
+})
+
 
 module.exports = MyEvents
