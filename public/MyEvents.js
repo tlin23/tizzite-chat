@@ -72,11 +72,11 @@ var EventDropup = React.createClass({
 		return(
 			<div>
 				<button className='glyphicon glyphicon-remove-circle' onClick={this.props.closeDropup}></button>
-				<PlannerEventDescription currentUser={this.props.currentUser} 
-																				 owner={this.props.owner} 
-																				 eventName={this.props.eventName} 
-																				 eventDesc={this.props.eventDesc} 
-																				 accessId={this.propsaccessId}/>
+				<PlannerEventDescription  currentUser={this.props.currentUser} 
+																	owner={this.props.owner} 
+																	eventName={this.props.eventName} 
+																	eventDesc={this.props.eventDesc} 
+																	accessId={this.props.accessId}/>
 			</div>
 		)
 	}

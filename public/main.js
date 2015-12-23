@@ -15,8 +15,9 @@ var Tizzite = React.createClass({
 
 	getInitialState: function() {
 		return {
-			currentUser: {},
+			firebaseChatroomData: [],
 			firebaseEventsData: [],
+			currentUser: {},
 			isLoggedIn: false
 		};
 	},
@@ -35,6 +36,27 @@ var Tizzite = React.createClass({
 	getEventsRef: function() {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/")
 		this.bindAsArray(ref, "firebaseEventsData");
+	},
+
+  createEvent: function(eventName, eventDesc, owner, lat, lng) {
+  	var eventsRef = this.firebaseRefs.firebaseEventsData.push({
+  		owner: owner,
+			eventName: eventName,
+			eventDesc: eventDesc,
+			lat: lat,
+			lng: lng
+  	})
+  	var eventKey = eventsRef.key()
+  	this.createChatroom(eventKey, owner)
+  },
+
+	createChatroom: function(eventKey, owner) {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom")
+		eventChatroomRef = "firebaseChatroomData" + eventKey
+		this.bindAsObject(ref, eventChatroomRef);
+		this.firebaseRefs[eventChatroomRef].update({
+			owner: owner
+		})
 	},
 
 	setLoginState: function() {
@@ -163,7 +185,7 @@ var Tizzite = React.createClass({
 					<div className='logo-wrapper'>
 						<img className='tizzite-logo' src='assets/img/tizzite-logo.png'/>
 					</div>
-					<MapComponent currentUser={this.state.currentUser} />
+					<MapComponent currentUser={this.state.currentUser} firebaseEventsData={this.state.firebaseEventsData} createEvent={this.createEvent} createChatroom={this.createChatroom} />
 					<MyEvents currentUser={this.state.currentUser} />
 				</div>
 			);

@@ -35,8 +35,6 @@ var MapComponent = React.createClass({
 	//Components: CreateEventModal, GoogleMap
 	getInitialState: function() {
 		return {
-			firebaseChatroomData: [],
-			firebaseEventsData: [],
 			modalIsOpen: false,
 			clickedLat: null,
 			clickedLng: null,
@@ -77,7 +75,6 @@ var MapComponent = React.createClass({
 	},
 
 	componentDidMount: function() {
-		this.getEvents();
 		var input = ReactDOM.findDOMNode(this.refs.input);
 		this.searchBox = new google.maps.places.SearchBox(input);
 		this.searchBox.addListener('places_changed', this.onPlacesChanged);
@@ -85,11 +82,6 @@ var MapComponent = React.createClass({
 
 	componentWillUnmount: function() {
 		this.searchBox.removeListener('places_changed', this.onPlacesChanged);
-	},
-
-	getEvents: function() {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/")
-		this.bindAsArray(ref, "firebaseEventsData");
 	},
 
   openModal: function() {
@@ -103,27 +95,6 @@ var MapComponent = React.createClass({
 			clickedLng: null
     });
   },
-
-  createEvent: function(eventName, eventDesc, owner, lat, lng) {
-  	var eventsRef = this.firebaseRefs.firebaseEventsData.push({
-  		owner: owner,
-			eventName: eventName,
-			eventDesc: eventDesc,
-			lat: lat,
-			lng: lng
-  	})
-  	var eventKey = eventsRef.key()
-  	this.createChatroom(eventKey, owner)
-  },
-
-	createChatroom: function(eventKey, owner) {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom")
-		eventChatroomRef = "firebaseChatroomData" + eventKey
-		this.bindAsObject(ref, eventChatroomRef);
-		this.firebaseRefs[eventChatroomRef].update({
-			owner: owner
-		})
-	},
 
 	handleMapOnClick: function(clickedEvent) {
 		if (clickedEvent.event.target.nodeName.toLowerCase() != 'img') {
@@ -153,7 +124,7 @@ var MapComponent = React.createClass({
 
   render: function() {
 		var that = this;
-		var eventsNodes = this.state.firebaseEventsData.map(function(theEvent, i) {
+		var eventsNodes = this.props.firebaseEventsData.map(function(theEvent, i) {
 			var accessId = theEvent['.key']
 			return (
 				<EventMarker lat={theEvent.lat} 
@@ -190,7 +161,7 @@ var MapComponent = React.createClass({
 	          <CreateEventForm lat={this.state.clickedLat} 
 	          								 lng={this.state.clickedLng} 
 	          								 closeModal={this.closeModal} 
-	          								 createEvent={this.createEvent} 
+	          								 createEvent={this.props.createEvent} 
 	          								 owner={this.props.currentUser} />
 	        </Modal>
 		      <GoogleMap
@@ -209,7 +180,7 @@ var MapComponent = React.createClass({
     );
   }
 })
-//////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////f////////////////////////////////////
 
 
 var SearchResultMarker = React.createClass({
