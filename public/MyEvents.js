@@ -41,14 +41,17 @@ var MyEvents = React.createClass({
 var EventDropupView = React.createClass({
 	getInitialState: function() {
 		return {
-			isOpen: false
+			isOpen: false,
+			wasButtonClicked: false
 		};
 	},
 
 	openDropup: function(e) {
-		this.setState({
-			isOpen: true
-		})
+		if (!this.state.wasButtonClicked){
+			this.setState({
+				isOpen: true
+			})
+		}
 	},
 
 	closeDropup: function() {
@@ -57,10 +60,17 @@ var EventDropupView = React.createClass({
 		})
 	},
 
+	handleOnClick: function() {
+		this.setState({
+			wasButtonClicked: true,
+			isOpen:!this.state.isOpen
+		});
+	},
+
 	render: function() {
 		return(
 			<div className='eventDropupView'>
-				<DropdownButton open={this.state.isOpen} onToggle={this.openDropup} title={this.props.eventName} dropup noCaret id="split-button-dropup">
+				<DropdownButton open={this.state.isOpen} onToggle={this.openDropup} onClick={this.handleOnClick} title={this.props.eventName} dropup noCaret id="split-button-dropup">
 					<button className='glyphicon glyphicon-remove-circle' onClick={this.closeDropup}></button>
 					<PlannerEventDescription  currentUser={this.props.currentUser} 
 																		owner={this.props.owner} 

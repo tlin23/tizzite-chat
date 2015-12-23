@@ -7,11 +7,14 @@ html, body {
 .eventNavBar {
   position: fixed;
   bottom: 0;
-  width : 100%;
+  width : 95%;
 }
 
 .eventDropupView {
+  position: relative;
   float: right;
+  padding-left: 5px;
+  padding-right
 }
 
 .searchbox-wrapper {

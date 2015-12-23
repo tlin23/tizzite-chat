@@ -32979,19 +32979,29 @@ var EventDropupView = React.createClass({
 
 	getInitialState: function () {
 		return {
-			isOpen: false
+			isOpen: false,
+			wasButtonClicked: false
 		};
 	},
 
 	openDropup: function (e) {
-		this.setState({
-			isOpen: true
-		});
+		if (!this.state.wasButtonClicked) {
+			this.setState({
+				isOpen: true
+			});
+		}
 	},
 
 	closeDropup: function () {
 		this.setState({
 			isOpen: false
+		});
+	},
+
+	handleOnClick: function () {
+		this.setState({
+			wasButtonClicked: true,
+			isOpen: !this.state.isOpen
 		});
 	},
 
@@ -33001,7 +33011,7 @@ var EventDropupView = React.createClass({
 			{ className: 'eventDropupView' },
 			React.createElement(
 				DropdownButton,
-				{ open: this.state.isOpen, onToggle: this.openDropup, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
+				{ open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
 				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeDropup }),
 				React.createElement(PlannerEventDescription, { currentUser: this.props.currentUser,
 					owner: this.props.owner,
