@@ -5,6 +5,7 @@ var ReactDOM = require('react-dom');
 var NavbarComponent = require('./NavbarComponent');
 var IntroComponent = require('./IntroComponent');
 var MapComponent = require('./MapComponent');
+var MyEvents = require('./MyEvents')
 
 // Components
 // Tizzite Client
@@ -15,18 +16,25 @@ var Tizzite = React.createClass({
 	getInitialState: function() {
 		return {
 			currentUser: {},
+			firebaseEventsData: [],
 			isLoggedIn: false
 		};
 	},
 
 	componentDidMount: function() {
 		this.getLoginRef();
+		this.getEventsRef();
 		this.handleLoginCallback();
 	},
 
 	getLoginRef: function() {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/");
     this.bindAsObject(ref, "loginRef");
+	},
+
+	getEventsRef: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/")
+		this.bindAsArray(ref, "firebaseEventsData");
 	},
 
 	setLoginState: function() {
@@ -139,7 +147,7 @@ var Tizzite = React.createClass({
 		if (this.state.isLoggedIn == false) {
 			return (
 				<div className="chatClient">
-					<NavbarComponent currentUser={this.state.currentUser} isLoggedIn={this.state.isLoggedIn} handleLogoutButton={this.handleLogoutButton} handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton}/>
+					<NavbarComponent isLoggedIn={this.state.isLoggedIn} handleLogoutButton={this.handleLogoutButton} handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton}/>
 					<div className='logo-wrapper'>
 						<img className='tizzite-logo' src='assets/img/tizzite-logo.png'/>
 					</div>
@@ -151,11 +159,12 @@ var Tizzite = React.createClass({
 		} else {
 			return (
 				<div className="chatClient">
-					<NavbarComponent currentUser={this.state.currentUser} isLoggedIn={this.state.isLoggedIn} handleLogoutButton={this.handleLogoutButton} handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton}/>
+					<NavbarComponent isLoggedIn={this.state.isLoggedIn} handleLogoutButton={this.handleLogoutButton} handleFacebookLoginButton={this.handleFacebookLoginButton} handleGoogleLoginButton={this.handleGoogleLoginButton}/>
 					<div className='logo-wrapper'>
 						<img className='tizzite-logo' src='assets/img/tizzite-logo.png'/>
 					</div>
 					<MapComponent currentUser={this.state.currentUser} />
+					<MyEvents currentUser={this.state.currentUser} />
 				</div>
 			);
 		}

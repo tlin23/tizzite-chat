@@ -1,9 +1,11 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var GoogleMap = require('google-map-react');
-var Chatroom = require('./Chatroom');
 var Modal = require('react-modal');
-var CreateEventForm = require('./CreateEventForm')
+var GoogleMap = require('google-map-react');
+var CreateEventForm = require('./CreateEventForm');
+var PlannerEventDescription = require('./PlannerEventDescription')
+var GoerEventDescription = require('./GoerEventDescription')
+
 //////////////////////////////////////////////////////////////////////////////////////////
 
 const MODALSTYLES = {
@@ -127,7 +129,9 @@ var MapComponent = React.createClass({
 		if (clickedEvent.event.target.nodeName.toLowerCase() != 'img') {
 			this.setState({
 				clickedLat: clickedEvent.lat,
-				clickedLng: clickedEvent.lng
+				clickedLng: clickedEvent.lng,
+				mapCenter: {lat: clickedEvent.lat, lng: clickedEvent.lng},
+				mapZoom: 14
 			});
 			this.openModal();
 		} else {
@@ -136,10 +140,6 @@ var MapComponent = React.createClass({
 				mapZoom: 14
 			})
 		}
-	},
-
-	onChildClick: function(key, childProps) {
-		console.log(childProps)
 	},
 
   getDefaultProps: function() {
@@ -200,7 +200,6 @@ var MapComponent = React.createClass({
 		        center={this.state.mapCenter}
 		        defaultZoom={this.props.zoom}
 		        zoom={this.state.mapZoom}
-		        onChildClick={this.onChildClick}
 		        onClick={this.handleMapOnClick}>
 		        {searchResultNodes}
 		        {eventsNodes}
@@ -276,7 +275,7 @@ var EventMarker = React.createClass({
 
 // Event Modal View
 var EventModalView = React.createClass({
-	// Props: currentUsername, owner, eventName, eventDesc, accessId
+	// Props: currentUser, owner, eventName, eventDesc, accessId
 	// Components: button (Planner, Event ID), Modal -> button (close), EventDescription
 	getInitialState: function() {
 		return {modalIsOpen: false};
@@ -311,240 +310,6 @@ var EventModalView = React.createClass({
     );
   }
 })
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Planner Event Description
-var PlannerEventDescription = React.createClass({
-	// Props: currentUsername, owner, eventName, eventDesc, accessId
-	// Components: ChatroomModalView
-	mixins: [ReactFireMixin],
-
-	getInitialState: function() {
-		return {
-			modalIsOpen: false,
-			firebaseGoersList: []
-		};
-	},
-
-	componentDidMount: function() {
-		this.getGoersList();
-	},
-
-	getGoersList: function() {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList")
-		this.bindAsArray(ref, "firebaseGoersList");
-	},
-
-  openModal: function() {
-    this.setState({modalIsOpen: true});
-  },
-
-  closeModal: function() {
-    this.setState({modalIsOpen: false});
-  },
-
-	render: function() {
-		return (
-			<div className="plannerEventDescription">
-				Planner: {this.props.owner.name}
-				<br/>
-				Event Name: {this.props.eventName}
-				<br/>
-				Event Description: {this.props.eventDesc}
-				<br/>
-				<GoersList firebaseGoersList={this.state.firebaseGoersList} accessId={this.props.accessId} />
-				<br/>
-				<ChatroomModalView currentUser={this.props.currentUser} owner={this.props.owner} accessId={this.props.accessId} />
-			</div>
-		)
-	}
-})
-//////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Goers List
-var GoersList = React.createClass({
-	// Props: firebaseGoersList, accessId
-	// Components: (many) GoersListItem
-	render: function() {
-		var that = this;
-		var inlineStyles = {
-			height: '100px',
-			overflowY: 'scroll'
-		};
-		var goersNodes = this.props.firebaseGoersList.map(function(theGoer, i) {
-			if (theGoer.status == 'pending') {
-				var goer = {
-					name            : theGoer.name,
-					id              : theGoer['.key'],
-					profileImageURL : theGoer.profileImageURL,
-					approvalStatus  : theGoer.status
-				}
-				return (
-					<GoersListItem goer={goer} accessId={that.props.accessId} key={i} />
-				);
-			}
-		});
-
-		return(
-			<div className="goerList" style={inlineStyles}>
-				{goersNodes}
-			</div>
-		)
-	}
-});
-//////////////////////////////////////////////////////////////////////////////////////////
-
-// Goers List Item
-var GoersListItem = React.createClass({
-	// Props: goerId, goerApprovalStatus, accessId
-	// Components:
-	
-	componentDidMount: function() {
-		this.handleApprovalButtons();
-	},
-
-
-	handleApprovalButtons: function() {
-		var that = this;
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goer.id)
-		$('.approve-button').click(function(event){
-				ref.update({
-					status : 'approved'
-				})
-    	})
-		$('.deny-button').click(function(event){
-				ref.update({
-					status : 'denied'
-				})
-    	})
-	},
-
-
-	render: function() {
-		return (
-			<div className="goersListItem">
-				<a href={this.props.goer.profileImageURL}>
-					<img src={this.props.goer.profileImageURL} style={{width: '36px', height: '36px'}}/>
-				</a>
-				{this.props.goer.name}
-				<button className='approve-button'> Yes </button>
-				<button className='deny-button'> No </button>
-			</div>
-		);
-	}
-});
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-// GoerEventDescription
-var GoerEventDescription = React.createClass({
-	// Props: currentUsername, owner, eventName, eventDesc, accessId
-	// Components: ChatroomModalView
-	mixins: [ReactFireMixin],
-
-	getInitialState: function() {
-		return {
-			modalIsOpen: false,
-			approvalStatus: ''
-		};
-	},
-
-	componentDidMount: function() {
-		this.getGoerStatus();
-		this.handleRequestJoinButton();
-	},
-
-  openModal: function() {
-    this.setState({modalIsOpen: true});
-  },
-
-  closeModal: function() {
-    this.setState({modalIsOpen: false});
-  },
-
-  getGoerStatus: function() {
-  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUser.id + '/status')
-  	this.bindAsObject(ref, "approvalStatus");
-  },
-
-  handleRequestJoinButton: function() {
-  	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUser.id)
-  	this.bindAsObject(ref, "firebaseGoerRequest");
-  	var that = this;
-		$('#request-to-join').click(function(){
-      that.firebaseRefs.firebaseGoerRequest.set({
-      	name            : that.props.currentUser.name,
-      	profileImageURL : that.props.currentUser.profileImageURL,	
-      	status          : 'pending'
-      })
-      // $('#request-to-join').hide();
-		})
-  },
-
-	render: function() {
-		var chatroomButton;
-		var currentUserStatus= this.state.approvalStatus['.value']
-		if (currentUserStatus == 'approved') {
-			//You are either the owner or you've been accepted as an attendee
-			// show ChatRoomModalView
-			chatroomButton = <ChatroomModalView currentUser={this.props.currentUser} owner={this.props.owner} accessId={this.props.accessId} />;
-		} else if (currentUserStatus == 'pending' || currentUserStatus == 'denied') {
-			// this means you are a goer who has not been accepted yet, show either request or pending button
-			// if your id is in the requestingList, show pending
-			// other wise, show request button
-			// // when the request button is pressed, add id to the requestingList and show pending
-			chatroomButton = <button>Pending Approval</button>
-		} else {
-			chatroomButton = <button id='request-to-join'>Request to Join</button>;
-		}
-		return (
-			<div className="goerEventDescription">
-				Planner: {this.props.owner.name}
-				<br/>
-				EventName: {this.props.eventName}
-				<br/>
-				Event Description: {this.props.eventDesc}
-				<br/>
-				{chatroomButton}
-			</div>
-		)
-	}
-})
-//////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// // Chatroom Modal View
-var ChatroomModalView = React.createClass({
-	// Props: currentUser, owner, accessId
-	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
-	getInitialState: function() {
-    return { modalIsOpen: false };
-  },
-
-  openModal: function() {
-    this.setState({modalIsOpen: true});
-  },
-
-  closeModal: function() {
-    this.setState({modalIsOpen: false});
-  },
-
-  render: function() {
-    return (
-      <div>
-        <button onClick={this.openModal}>Enter Chatroom</button>
-        <Modal
-          isOpen={this.state.modalIsOpen}
-          style={MODALSTYLES} >
-
-          <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
-          <Chatroom currentUser={this.props.currentUser}
-          	   			owner={this.props.owner}
-          	   			accessId={this.props.accessId} />
-        </Modal>
-      </div>
-    );
-  }
-})
-//////////////////////////////////////////////////////////////////////////////////////////
 
 module.exports = MapComponent;
