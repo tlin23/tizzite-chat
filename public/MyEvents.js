@@ -34,14 +34,12 @@ var MyEvents = React.createClass({
     	if (theEvent.owner.id == that.props.currentUser.id){
 	      return (
 	      	<SplitButton key={i} title={theEvent.eventName} dropup id="split-button-dropup">
-	      		<MenuItem eventKey='1'> 
 	      			<PlannerEventDescription currentUser={that.props.currentUser} 
 																			 owner={theEvent.owner} 
 																			 eventName={theEvent.eventName} 
 																			 eventDesc={theEvent.eventDesc} 
 																			 accessId={accessId} 
-																			 key={i} />
-	      		</MenuItem>
+																			 key={i}/>
 	      	</SplitButton>
 	      );
     	}	

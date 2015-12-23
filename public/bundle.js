@@ -33118,16 +33118,12 @@ var MyEvents = React.createClass({
 				return React.createElement(
 					SplitButton,
 					{ key: i, title: theEvent.eventName, dropup: true, id: 'split-button-dropup' },
-					React.createElement(
-						MenuItem,
-						{ eventKey: '1' },
-						React.createElement(PlannerEventDescription, { currentUser: that.props.currentUser,
-							owner: theEvent.owner,
-							eventName: theEvent.eventName,
-							eventDesc: theEvent.eventDesc,
-							accessId: accessId,
-							key: i })
-					)
+					React.createElement(PlannerEventDescription, { currentUser: that.props.currentUser,
+						owner: theEvent.owner,
+						eventName: theEvent.eventName,
+						eventDesc: theEvent.eventDesc,
+						accessId: accessId,
+						key: i })
 				);
 			}
 		});
