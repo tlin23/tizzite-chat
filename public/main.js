@@ -15,7 +15,6 @@ var Tizzite = React.createClass({
 
 	getInitialState: function() {
 		return {
-			firebaseChatroomData: [],
 			firebaseEventsData: [],
 			currentUser: {},
 			isLoggedIn: false

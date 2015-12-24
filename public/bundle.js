@@ -32132,7 +32132,7 @@ var ChatHeader = React.createClass({
     var goerNodes = this.props.firebaseGoersList.map(function (theGoer, i) {
       return React.createElement(
         'a',
-        { href: theGoer.profileImageURL },
+        { href: theGoer.profileImageURL, key: i },
         React.createElement('img', { src: theGoer.profileImageURL, style: { width: '36px', height: '36px' } })
       );
     });
@@ -32195,41 +32195,34 @@ var ChatForm = React.createClass({
   //Props: sendMessage
   //Components: textarea, button (submit)
 
+  sendMessage: function () {
+    var msg = ReactDOM.findDOMNode(this.refs.textArea).value.trim();
+    if (msg !== '') {
+      // call the sendMessage of Chatroom through the props
+      // this was passed in from <Chatroom sendMessage={this.sendMessage}>
+      this.props.sendMessage(msg);
+    }
+    // Prevent default and clear the textarea
+    event.preventDefault();
+    ReactDOM.findDOMNode(this.refs.textArea).value = null;
+  },
+
   //Message send event handler
-  handleUserMessage: function (event) {
+  handleKeyboard: function (event) {
     // When shift and enter key is pressed
     if (event.shiftKey && event.keyCode === 13) {
-      var msg = ReactDOM.findDOMNode(this.refs.textArea).value.trim();
-      if (msg !== '') {
-        // call the sendMessage of Chatroom through the props
-        // this was passed in from <Chatroom sendMessage={this.sendMessage}>
-        this.props.sendMessage(msg);
-      }
-      // Prevent default and clear the textarea
-      event.preventDefault();
-      ReactDOM.findDOMNode(this.refs.textArea).value = null;
-    } else {
-      var that = this;
-      $('#submit-msg').click(function () {
-        var msg = ReactDOM.findDOMNode(that.refs.textArea).value.trim();
-        if (msg !== '') {
-          // call the sendMessage of Chatroom through the props
-          // this was passed in from <Chatroom sendMessage={this.sendMessage}>
-          that.props.sendMessage(msg);
-        }
-        // Prevent default and clear the textarea
-        ReactDOM.findDOMNode(that.refs.textArea).value = null;
-      });
+      this.sendMessage();
     }
   },
+
   render: function () {
     return React.createElement(
       'div',
       { className: 'msg-wgt-footer' },
-      React.createElement('textarea', { id: 'chatMsg', ref: 'textArea', onKeyDown: this.handleUserMessage, placeholder: 'Type your message. Press shift + enter to send' }),
+      React.createElement('textarea', { id: 'chatMsg', ref: 'textArea', onKeyDown: this.handleKeyboard, placeholder: 'Type your message. Press shift + enter to send' }),
       React.createElement(
         'button',
-        { id: 'submit-msg' },
+        { id: 'submit-msg', onClick: this.sendMessage },
         ' Submit '
       )
     );
@@ -33251,22 +33244,17 @@ var GoersListItem = React.createClass({
 	// Props: goerId, goerApprovalStatus, accessId
 	// Components:
 
-	componentDidMount: function () {
-		this.handleApprovalButtons();
+	approve: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goer.id);
+		ref.update({
+			status: 'approved'
+		});
 	},
 
-	handleApprovalButtons: function () {
-		var that = this;
+	deny: function () {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goer.id);
-		$('.approve-button').click(function (event) {
-			ref.update({
-				status: 'approved'
-			});
-		});
-		$('.deny-button').click(function (event) {
-			ref.update({
-				status: 'denied'
-			});
+		ref.update({
+			status: 'denied'
 		});
 	},
 
@@ -33282,12 +33270,12 @@ var GoersListItem = React.createClass({
 			this.props.goer.name,
 			React.createElement(
 				'button',
-				{ className: 'approve-button' },
+				{ className: 'approve-button', onClick: this.approve },
 				' Yes '
 			),
 			React.createElement(
 				'button',
-				{ className: 'deny-button' },
+				{ className: 'deny-button', onClick: this.deny },
 				' No '
 			)
 		);
@@ -33359,7 +33347,6 @@ var Tizzite = React.createClass({
 
 	getInitialState: function () {
 		return {
-			firebaseChatroomData: [],
 			firebaseEventsData: [],
 			currentUser: {},
 			isLoggedIn: false

@@ -110,24 +110,18 @@ var GoersListItem = React.createClass({
 	// Props: goerId, goerApprovalStatus, accessId
 	// Components:
 	
-	componentDidMount: function() {
-		this.handleApprovalButtons();
+	approve: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goer.id)
+		ref.update({
+			status : 'approved'
+		})
 	},
 
-
-	handleApprovalButtons: function() {
-		var that = this;
+	deny: function() {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.goer.id)
-		$('.approve-button').click(function(event){
-				ref.update({
-					status : 'approved'
-				})
-    	})
-		$('.deny-button').click(function(event){
-				ref.update({
-					status : 'denied'
-				})
-    	})
+		ref.update({
+			status : 'denied'
+		})
 	},
 
 
@@ -138,8 +132,8 @@ var GoersListItem = React.createClass({
 					<img src={this.props.goer.profileImageURL} style={{width: '36px', height: '36px'}}/>
 				</a>
 				{this.props.goer.name}
-				<button className='approve-button'> Yes </button>
-				<button className='deny-button'> No </button>
+				<button className='approve-button' onClick={this.approve}> Yes </button>
+				<button className='deny-button' onClick={this.deny}> No </button>
 			</div>
 		);
 	}

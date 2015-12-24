@@ -84,7 +84,7 @@ var ChatHeader = React.createClass({
 
     var goerNodes = this.props.firebaseGoersList.map(function(theGoer, i) {
       return (
-        <a href={theGoer.profileImageURL}>
+        <a href={theGoer.profileImageURL} key={i}>
 					<img src={theGoer.profileImageURL} style={{width: '36px', height: '36px'}}/>
 				</a>
       );    		
@@ -144,38 +144,31 @@ var ChatForm = React.createClass({
 	//Props: sendMessage
 	//Components: textarea, button (submit)
 
+  sendMessage: function() {
+    var msg = ReactDOM.findDOMNode(this.refs.textArea).value.trim();
+    if (msg !== '') {
+      // call the sendMessage of Chatroom through the props
+      // this was passed in from <Chatroom sendMessage={this.sendMessage}>
+      this.props.sendMessage(msg);
+    }
+    // Prevent default and clear the textarea
+    event.preventDefault()
+    ReactDOM.findDOMNode(this.refs.textArea).value = null;
+  },
+
   //Message send event handler
-  handleUserMessage: function(event) {
+  handleKeyboard: function(event) {
     // When shift and enter key is pressed
     if (event.shiftKey && event.keyCode === 13) {
-      var msg = ReactDOM.findDOMNode(this.refs.textArea).value.trim();
-      if (msg !== '') {
-        // call the sendMessage of Chatroom through the props
-        // this was passed in from <Chatroom sendMessage={this.sendMessage}>
-        this.props.sendMessage(msg);
-      }
-      // Prevent default and clear the textarea
-      event.preventDefault()
-      ReactDOM.findDOMNode(this.refs.textArea).value = null;
-    } else {
-			var that = this
-			$('#submit-msg').click(function(){
-	      var msg = ReactDOM.findDOMNode(that.refs.textArea).value.trim();
-	      if (msg !== '') {
-	        // call the sendMessage of Chatroom through the props
-	        // this was passed in from <Chatroom sendMessage={this.sendMessage}>
-	        that.props.sendMessage(msg);
-	      }
-	      // Prevent default and clear the textarea
-	      ReactDOM.findDOMNode(that.refs.textArea).value = null;
-			})
-    }
+      this.sendMessage();
+    } 
   },
+  
   render: function() {
     return (
       <div className="msg-wgt-footer">
-        <textarea id="chatMsg" ref="textArea" onKeyDown={this.handleUserMessage} placeholder="Type your message. Press shift + enter to send" />
-        <button id='submit-msg'> Submit </button>
+        <textarea id="chatMsg" ref="textArea" onKeyDown={this.handleKeyboard} placeholder="Type your message. Press shift + enter to send" />
+        <button id='submit-msg' onClick={this.sendMessage}> Submit </button>
       </div>
     );
   }
