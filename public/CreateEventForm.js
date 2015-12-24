@@ -5,22 +5,15 @@ var ReactDOM = require('react-dom');
 var CreateEventForm = React.createClass({
 	// Props: lat, lng, closeModal,createEvent, owner
 	// Components: p (Planner), p (Event Name), p (Event Description), button (Create Event)
-	componentDidMount: function() {
-		this.handleCreateEventButton();
-	},
-
 	handleCreateEventButton: function() {
-		var that = this;
-		$('#create-event').click(function() {
-			var eventName = ReactDOM.findDOMNode(that.refs.eventName).value.trim();
-			var eventDesc = ReactDOM.findDOMNode(that.refs.eventDesc).value.trim();
-			if (eventName !== '' && eventDesc !== '') {
-				that.props.createEvent(eventName, eventDesc, that.props.owner, that.props.lat, that.props.lng);
-				that.props.closeModal();
-			} else {
-				alert('Please enter all fields');
-			};
-		});
+		var eventName = ReactDOM.findDOMNode(this.refs.eventName).value.trim();
+		var eventDesc = ReactDOM.findDOMNode(this.refs.eventDesc).value.trim();
+		if (eventName !== '' && eventDesc !== '') {
+			this.props.createEvent(eventName, eventDesc, this.props.owner, this.props.lat, this.props.lng);
+			this.props.closeModal();
+		} else {
+			alert('Please enter all fields');
+		};
 	},
 
 	render: function() {
@@ -29,7 +22,7 @@ var CreateEventForm = React.createClass({
 				<p> Planner : {this.props.owner.name} </p>
 		    <p> Event Name : <input type='text' id='eventName' ref='eventName'></input> </p>
 		    <p> Event Description : <textarea id='eventDesc' ref='eventDesc'></textarea> </p>
-		    <button id='create-event'> Create Event </button>
+		    <button id='create-event' onClick={this.handleCreateEventButton}> Create Event </button>
 	    </div>
     )
 	}

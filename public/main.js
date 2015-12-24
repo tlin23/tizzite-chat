@@ -153,8 +153,6 @@ var Tizzite = React.createClass({
     if(isLoggedIn) {
       console.log("User " + isLoggedIn.uid + " is logged in with " + isLoggedIn.provider);
       loginRef.unauth();
-      $('#fblogin-button').show();
-      $('#fblogout-button').hide();
       window.location.reload(true);
       alert('Log out successful!');
     } else {

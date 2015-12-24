@@ -1,6 +1,5 @@
 var React = require('react');
-var Chatroom = require('./Chatroom');
-var Modal = require('react-modal');
+var ChatroomModalView = require('./ChatroomModalView')
 
 const MODALSTYLES = {
   content : {
@@ -38,7 +37,6 @@ var GoerEventDescription = React.createClass({
 
 	componentDidMount: function() {
 		this.getGoerStatus();
-		this.handleRequestJoinButton();
 	},
 
   openModal: function() {
@@ -57,15 +55,11 @@ var GoerEventDescription = React.createClass({
   handleRequestJoinButton: function() {
   	var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList/" + this.props.currentUser.id)
   	this.bindAsObject(ref, "firebaseGoerRequest");
-  	var that = this;
-		$('#request-to-join').click(function(){
-      that.firebaseRefs.firebaseGoerRequest.set({
-      	name            : that.props.currentUser.name,
-      	profileImageURL : that.props.currentUser.profileImageURL,	
-      	status          : 'pending'
-      })
-      // $('#request-to-join').hide();
-		})
+    this.firebaseRefs.firebaseGoerRequest.set({
+      name            : this.props.currentUser.name,
+      profileImageURL : this.props.currentUser.profileImageURL, 
+      status          : 'pending'
+    })
   },
 
 	render: function() {
@@ -82,7 +76,7 @@ var GoerEventDescription = React.createClass({
 			// // when the request button is pressed, add id to the requestingList and show pending
 			chatroomButton = <button>Pending Approval</button>
 		} else {
-			chatroomButton = <button id='request-to-join'>Request to Join</button>;
+			chatroomButton = <button id='request-to-join' onClick={this.handleRequestJoinButton}>Request to Join</button>;
 		}
 		return (
 			<div className="goerEventDescription">
@@ -98,41 +92,6 @@ var GoerEventDescription = React.createClass({
 	}
 })
 //////////////////////////////////////////////////////////////////////////////////////////////
-
-// // Chatroom Modal View
-var ChatroomModalView = React.createClass({
-	// Props: currentUser, owner, accessId
-	// Components: button (Enter Chatroom), Modal -> button (close), Chatroom
-	getInitialState: function() {
-    return { modalIsOpen: false };
-  },
-
-  openModal: function() {
-    this.setState({modalIsOpen: true});
-  },
-
-  closeModal: function() {
-    this.setState({modalIsOpen: false});
-  },
-
-  render: function() {
-    return (
-      <div>
-        <button onClick={this.openModal}>Enter Chatroom</button>
-        <Modal
-          isOpen={this.state.modalIsOpen}
-          style={MODALSTYLES} >
-
-          <button className='glyphicon glyphicon-remove-circle' onClick={this.closeModal}></button>
-          <Chatroom currentUser={this.props.currentUser}
-          	   			owner={this.props.owner}
-          	   			accessId={this.props.accessId} />
-        </Modal>
-      </div>
-    );
-  }
-})
-//////////////////////////////////////////////////////////////////////////////////////////
 
 module.exports = GoerEventDescription;
 
