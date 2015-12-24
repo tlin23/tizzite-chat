@@ -1,27 +1,6 @@
 var React = require('react');
 var ChatroomModalView = require('./ChatroomModalView')
 
-const MODALSTYLES = {
-  content : {
-    top                   : '50%',
-    left                  : '50%',
-    right                 : 'auto',
-    bottom                : 'auto',
-    marginRight           : '-50%',
-    transform             : 'translate(-50%, -50%)'
-  }
-};
-
-const MARKER_SIZE = 40;
-const eventMarkerStyle = {
-  position: 'absolute',
-  width: MARKER_SIZE,
-  height: MARKER_SIZE,
-  left: -MARKER_SIZE / 2,
-  top: -MARKER_SIZE / 2,
-}	
-
-
 // GoerEventDescription
 var GoerEventDescription = React.createClass({
 	// Props: currentUsername, owner, eventName, eventDesc, accessId
