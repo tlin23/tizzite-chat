@@ -32961,6 +32961,7 @@ var Button = require('react-bootstrap/lib/Button');
 var DropdownButton = require('react-bootstrap/lib/DropdownButton');
 var MenuItem = require('react-bootstrap/lib/MenuItem');
 var PlannerEventDescription = require('./PlannerEventDescription');
+var GoerEventDescription = require('./GoerEventDescription');
 var Navbar = require('react-bootstrap/lib/Navbar');
 
 var MyEvents = React.createClass({
@@ -32975,7 +32976,17 @@ var MyEvents = React.createClass({
 		var eventNodes = this.props.firebaseEventsData.map(function (theEvent, i) {
 			var accessId = theEvent['.key'];
 			if (theEvent.owner.id == that.props.currentUser.id) {
-				return React.createElement(EventDropupView, { closeDropup: that.closeDropup,
+				return React.createElement(OwnerEventDropupView, { closeDropup: that.closeDropup,
+					currentUser: that.props.currentUser,
+					owner: theEvent.owner,
+					eventName: theEvent.eventName,
+					eventDesc: theEvent.eventDesc,
+					newMessage: theEvent.newMessage,
+					newRequest: theEvent.newRequest,
+					accessId: accessId,
+					key: i });
+			} else if (theEvent.goersList[that.props.currentUser.id].status == 'approved') {
+				return React.createElement(ApprovedEventDropupView, { closeDropup: that.closeDropup,
 					currentUser: that.props.currentUser,
 					owner: theEvent.owner,
 					eventName: theEvent.eventName,
@@ -32994,8 +33005,8 @@ var MyEvents = React.createClass({
 	}
 });
 
-var EventDropupView = React.createClass({
-	displayName: 'EventDropupView',
+var OwnerEventDropupView = React.createClass({
+	displayName: 'OwnerEventDropupView',
 
 	mixins: [ReactFireMixin],
 	getInitialState: function () {
@@ -33044,8 +33055,7 @@ var EventDropupView = React.createClass({
 	render: function () {
 		var messageNotification;
 		var requestNotification;
-
-		if (this.props.newMessage) {
+		if (this.props.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
 				'p',
 				null,
@@ -33053,7 +33063,7 @@ var EventDropupView = React.createClass({
 			);
 		}
 
-		if (this.props.newRequest) {
+		if (this.props.newRequest && !this.state.isOpen) {
 			requestNotification = React.createElement(
 				'p',
 				null,
@@ -33080,9 +33090,93 @@ var EventDropupView = React.createClass({
 	}
 });
 
+var ApprovedEventDropupView = React.createClass({
+	displayName: 'ApprovedEventDropupView',
+
+	mixins: [ReactFireMixin],
+	getInitialState: function () {
+		return {
+			isOpen: false,
+			wasButtonClicked: false,
+			newRequest: this.props.newRequest,
+			newMessage: this.props.newMessage
+		};
+	},
+
+	componentDidMount: function () {
+		this.getEventRef();
+	},
+
+	getEventRef: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
+		this.bindAsObject(ref, "eventRef");
+	},
+
+	openDropup: function (e) {
+		if (!this.state.wasButtonClicked) {
+			this.setState({
+				isOpen: true
+			});
+			this.firebaseRefs.eventRef.update({
+				newRequest: false,
+				newMessage: false
+			});
+		}
+	},
+
+	closeDropup: function () {
+		this.setState({
+			isOpen: false
+		});
+	},
+
+	handleOnClick: function () {
+		this.setState({
+			wasButtonClicked: !this.state.wasButtonClicked,
+			isOpen: !this.state.isOpen
+		});
+	},
+
+	render: function () {
+		var messageNotification;
+		var requestNotification;
+		if (this.props.newMessage && !this.state.isOpen) {
+			messageNotification = React.createElement(
+				'p',
+				null,
+				' New Message! '
+			);
+		}
+
+		if (this.props.newRequest && !this.state.isOpen) {
+			requestNotification = React.createElement(
+				'p',
+				null,
+				' New Request! '
+			);
+		}
+
+		return React.createElement(
+			'div',
+			{ className: 'eventDropupView' },
+			messageNotification,
+			React.createElement(
+				DropdownButton,
+				{ open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
+				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeDropup }),
+				React.createElement(GoerEventDescription, { currentUser: this.props.currentUser,
+					owner: this.props.owner,
+					eventName: this.props.eventName,
+					eventDesc: this.props.eventDesc,
+					accessId: this.props.accessId })
+			)
+		);
+	}
+});
+
 module.exports = MyEvents;
 
-},{"./Chatroom":422,"./PlannerEventDescription":431,"react":421,"react-bootstrap/lib/Button":84,"react-bootstrap/lib/DropdownButton":88,"react-bootstrap/lib/MenuItem":92,"react-bootstrap/lib/Navbar":97,"react-modal":252}],430:[function(require,module,exports){
+},{"./Chatroom":422,"./GoerEventDescription":426,"./PlannerEventDescription":431,"react":421,"react-bootstrap/lib/Button":84,"react-bootstrap/lib/DropdownButton":88,"react-bootstrap/lib/MenuItem":92,"react-bootstrap/lib/Navbar":97,"react-modal":252}],430:[function(require,module,exports){
 var React = require('react');
 var Modal = require('react-modal');
 var Navbar = require('react-bootstrap/lib/Navbar');
