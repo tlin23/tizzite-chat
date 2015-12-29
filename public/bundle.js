@@ -32986,17 +32986,19 @@ var MyEvents = React.createClass({
 					accessId: accessId,
 					key: i });
 			} else if (theEvent.goersList) {
-				if (theEvent.goersList[that.props.currentUser.id].status == 'approved') {
-					return React.createElement(ApprovedEventDropupView, { closeDropup: that.closeDropup,
-						currentUser: that.props.currentUser,
-						owner: theEvent.owner,
-						eventName: theEvent.eventName,
-						eventDesc: theEvent.eventDesc,
-						newMessage: theEvent.newMessage,
-						newRequest: theEvent.newRequest,
-						accessId: accessId,
-						key: i });
-				}
+				try {
+					if (theEvent.goersList[that.props.currentUser.id].status == 'approved') {
+						return React.createElement(ApprovedEventDropupView, { closeDropup: that.closeDropup,
+							currentUser: that.props.currentUser,
+							owner: theEvent.owner,
+							eventName: theEvent.eventName,
+							eventDesc: theEvent.eventDesc,
+							newMessage: theEvent.newMessage,
+							newRequest: theEvent.newRequest,
+							accessId: accessId,
+							key: i });
+					}
+				} catch (err) {}
 			}
 		});
 		return React.createElement(
