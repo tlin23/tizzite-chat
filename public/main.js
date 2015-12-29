@@ -21,10 +21,10 @@ var Tizzite = React.createClass({
 		};
 	},
 
-	componentDidMount: function() {
+	componentWillMount: function() {
 		this.getLoginRef();
 		this.getEventsRef();
-		this.handleLoginCallback();
+		this.handleLoginCallback();		
 	},
 
 	getLoginRef: function() {
