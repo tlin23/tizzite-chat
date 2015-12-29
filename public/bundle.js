@@ -32059,6 +32059,7 @@ var Chatroom = React.createClass({
     this.getLoginRef();
     this.getMessages();
     this.getGoersList();
+    this.getEvent();
     // You can define pollInterval as a Chatroom attribute in ReactDom.render
     // This will invoke getMessages every defined interval
     // setInterval(this.getMessages, this.props.pollInterval);
@@ -32074,6 +32075,11 @@ var Chatroom = React.createClass({
     this.bindAsArray(ref, "fireBaseMessageData");
   },
 
+  getEvent: function () {
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
+    this.bindAsObject(ref, "firebaseEvent");
+  },
+
   getLoginRef: function () {
     var loginRef = new Firebase("https://tizzite-chat.firebaseio.com/");
     this.bindAsObject(loginRef, "loginRef");
@@ -32086,6 +32092,9 @@ var Chatroom = React.createClass({
       username: this.props.currentUser.name,
       userId: this.props.currentUser.id,
       profileImgUrl: this.props.currentUser.profileImageURL
+    });
+    this.firebaseRefs.firebaseEvent.update({
+      newMessage: true
     });
   },
 
@@ -32531,6 +32540,11 @@ var GoerEventDescription = React.createClass({
 			profileImageURL: this.props.currentUser.profileImageURL,
 			status: 'pending'
 		});
+
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
+		ref.update({
+			newRequest: true
+		});
 	},
 
 	render: function () {
@@ -32952,8 +32966,7 @@ var Navbar = require('react-bootstrap/lib/Navbar');
 var MyEvents = React.createClass({
 	displayName: 'MyEvents',
 
-	mixins: [ReactFireMixin],
-
+	// Props: currentUser, firebaseEventsData
 	render: function () {
 		// Inline styles in React
 		var that = this;
@@ -32967,6 +32980,8 @@ var MyEvents = React.createClass({
 					owner: theEvent.owner,
 					eventName: theEvent.eventName,
 					eventDesc: theEvent.eventDesc,
+					newMessage: theEvent.newMessage,
+					newRequest: theEvent.newRequest,
 					accessId: accessId,
 					key: i });
 			}
@@ -32982,17 +32997,33 @@ var MyEvents = React.createClass({
 var EventDropupView = React.createClass({
 	displayName: 'EventDropupView',
 
+	mixins: [ReactFireMixin],
 	getInitialState: function () {
 		return {
 			isOpen: false,
-			wasButtonClicked: false
+			wasButtonClicked: false,
+			newRequest: this.props.newRequest,
+			newMessage: this.props.newMessage
 		};
+	},
+
+	componentDidMount: function () {
+		this.getEventRef();
+	},
+
+	getEventRef: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
+		this.bindAsObject(ref, "eventRef");
 	},
 
 	openDropup: function (e) {
 		if (!this.state.wasButtonClicked) {
 			this.setState({
 				isOpen: true
+			});
+			this.firebaseRefs.eventRef.update({
+				newRequest: false,
+				newMessage: false
 			});
 		}
 	},
@@ -33005,15 +33036,36 @@ var EventDropupView = React.createClass({
 
 	handleOnClick: function () {
 		this.setState({
-			wasButtonClicked: true,
+			wasButtonClicked: !this.state.wasButtonClicked,
 			isOpen: !this.state.isOpen
 		});
 	},
 
 	render: function () {
+		var messageNotification;
+		var requestNotification;
+
+		if (this.props.newMessage) {
+			messageNotification = React.createElement(
+				'p',
+				null,
+				' New Message! '
+			);
+		}
+
+		if (this.props.newRequest) {
+			requestNotification = React.createElement(
+				'p',
+				null,
+				' New Request! '
+			);
+		}
+
 		return React.createElement(
 			'div',
 			{ className: 'eventDropupView' },
+			messageNotification,
+			requestNotification,
 			React.createElement(
 				DropdownButton,
 				{ open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
@@ -33324,7 +33376,9 @@ var Tizzite = React.createClass({
 			eventName: eventName,
 			eventDesc: eventDesc,
 			lat: lat,
-			lng: lng
+			lng: lng,
+			newMessage: false,
+			newRequest: false
 		});
 		var eventKey = eventsRef.key();
 		this.createChatroom(eventKey, owner);

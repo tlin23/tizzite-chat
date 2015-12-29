@@ -43,7 +43,9 @@ var Tizzite = React.createClass({
 			eventName: eventName,
 			eventDesc: eventDesc,
 			lat: lat,
-			lng: lng
+			lng: lng,
+			newMessage: false,
+			newRequest: false
   	})
   	var eventKey = eventsRef.key()
   	this.createChatroom(eventKey, owner)

@@ -8,8 +8,7 @@ var PlannerEventDescription = require('./PlannerEventDescription')
 var Navbar = require('react-bootstrap/lib/Navbar');
 
 var MyEvents = React.createClass({
-	mixins: [ReactFireMixin],
-
+	// Props: currentUser, firebaseEventsData
   render: function() {
     // Inline styles in React
     var that = this;
@@ -24,6 +23,8 @@ var MyEvents = React.createClass({
 																owner={theEvent.owner} 
 																eventName={theEvent.eventName} 
 																eventDesc={theEvent.eventDesc} 
+																newMessage={theEvent.newMessage}
+																newRequest={theEvent.newRequest}
 																accessId={accessId} 
 																key={i}/>
 	      );
@@ -39,17 +40,33 @@ var MyEvents = React.createClass({
 
 
 var EventDropupView = React.createClass({
+	mixins: [ReactFireMixin],
 	getInitialState: function() {
 		return {
 			isOpen: false,
-			wasButtonClicked: false
+			wasButtonClicked: false,
+			newRequest: this.props.newRequest,
+			newMessage: this.props.newMessage
 		};
+	},
+
+	componentDidMount: function() {
+		this.getEventRef();
+	},
+
+	getEventRef: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
+		this.bindAsObject(ref, "eventRef");
 	},
 
 	openDropup: function(e) {
 		if (!this.state.wasButtonClicked){
 			this.setState({
 				isOpen: true
+			})
+			this.firebaseRefs.eventRef.update({
+				newRequest: false,
+				newMessage: false,
 			})
 		}
 	},
@@ -62,14 +79,27 @@ var EventDropupView = React.createClass({
 
 	handleOnClick: function() {
 		this.setState({
-			wasButtonClicked: true,
+			wasButtonClicked: !this.state.wasButtonClicked,
 			isOpen:!this.state.isOpen
 		});
 	},
 
 	render: function() {
+		var messageNotification;
+		var requestNotification;
+
+		if (this.props.newMessage) {
+			messageNotification = <p> New Message! </p>
+		}
+
+		if (this.props.newRequest){
+			requestNotification = <p> New Request! </p>
+		}
+
 		return(
 			<div className='eventDropupView'>
+				{messageNotification}
+				{requestNotification}
 				<DropdownButton open={this.state.isOpen} onToggle={this.openDropup} onClick={this.handleOnClick} title={this.props.eventName} dropup noCaret id="split-button-dropup">
 					<button className='glyphicon glyphicon-remove-circle' onClick={this.closeDropup}></button>
 					<PlannerEventDescription  currentUser={this.props.currentUser} 

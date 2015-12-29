@@ -39,6 +39,11 @@ var GoerEventDescription = React.createClass({
       profileImageURL : this.props.currentUser.profileImageURL, 
       status          : 'pending'
     })
+
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
+		ref.update({
+			newRequest: true
+		})
   },
 
 	render: function() {

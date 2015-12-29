@@ -18,6 +18,7 @@ var Chatroom = React.createClass({
     this.getLoginRef();
     this.getMessages();
     this.getGoersList();
+    this.getEvent();
     // You can define pollInterval as a Chatroom attribute in ReactDom.render
     // This will invoke getMessages every defined interval
     // setInterval(this.getMessages, this.props.pollInterval);
@@ -33,6 +34,11 @@ var Chatroom = React.createClass({
     this.bindAsArray(ref, "fireBaseMessageData");
   },
 
+  getEvent: function() {
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId) 
+    this.bindAsObject(ref, "firebaseEvent");
+  },
+
   getLoginRef: function() {
   	var loginRef = new Firebase("https://tizzite-chat.firebaseio.com/");
     this.bindAsObject(loginRef, "loginRef");
@@ -46,6 +52,9 @@ var Chatroom = React.createClass({
       userId: this.props.currentUser.id,
       profileImgUrl: this.props.currentUser.profileImageURL
     });
+    this.firebaseRefs.firebaseEvent.update({
+      newMessage: true
+    })
   },
 
 	render: function() {
