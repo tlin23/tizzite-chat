@@ -33018,8 +33018,7 @@ var OwnerEventDropupView = React.createClass({
 		return {
 			isOpen: false,
 			wasButtonClicked: false,
-			newRequest: this.props.newRequest,
-			newMessage: this.props.newMessage
+			newRequest: this.props.newRequest
 		};
 	},
 
@@ -33038,8 +33037,7 @@ var OwnerEventDropupView = React.createClass({
 				isOpen: true
 			});
 			this.firebaseRefs.eventRef.update({
-				newRequest: false,
-				newMessage: false
+				newRequest: false
 			});
 		}
 	},

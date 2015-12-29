@@ -19,7 +19,7 @@ var MyEvents = React.createClass({
     	var accessId = theEvent['.key']
     	if (theEvent.owner.id == that.props.currentUser.id){
 	      return (
-	      			<OwnerEventDropupView	closeDropup={that.closeDropup}
+    			<OwnerEventDropupView	closeDropup={that.closeDropup}
 			      										currentUser={that.props.currentUser} 
 																owner={theEvent.owner} 
 																eventName={theEvent.eventName} 
@@ -34,18 +34,18 @@ var MyEvents = React.createClass({
 	    		if (theEvent.goersList[that.props.currentUser.id].status == 'approved') {
 		    		return (
 		    			<ApprovedEventDropupView	closeDropup={that.closeDropup}
-					      										currentUser={that.props.currentUser} 
-																		owner={theEvent.owner} 
-																		eventName={theEvent.eventName} 
-																		eventDesc={theEvent.eventDesc} 
-																		newMessage={theEvent.newMessage}
-																		newRequest={theEvent.newRequest}
-																		accessId={accessId} 
-																		key={i}/>
+							      										currentUser={that.props.currentUser} 
+																				owner={theEvent.owner} 
+																				eventName={theEvent.eventName} 
+																				eventDesc={theEvent.eventDesc} 
+																				newMessage={theEvent.newMessage}
+																				newRequest={theEvent.newRequest}
+																				accessId={accessId} 
+																				key={i}/>
 		    		)
 	    		}    			
     		} catch (err) {
-    			
+
     		}
     	}
     });
@@ -66,7 +66,6 @@ var OwnerEventDropupView = React.createClass({
 			isOpen: false,
 			wasButtonClicked: false,
 			newRequest: this.props.newRequest,
-			newMessage: this.props.newMessage
 		};
 	},
 
@@ -86,7 +85,6 @@ var OwnerEventDropupView = React.createClass({
 			})
 			this.firebaseRefs.eventRef.update({
 				newRequest: false,
-				newMessage: false,
 			})
 		}
 	},
