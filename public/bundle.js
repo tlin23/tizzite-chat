@@ -32985,16 +32985,18 @@ var MyEvents = React.createClass({
 					newRequest: theEvent.newRequest,
 					accessId: accessId,
 					key: i });
-			} else if (theEvent.goersList[that.props.currentUser.id].status == 'approved') {
-				return React.createElement(ApprovedEventDropupView, { closeDropup: that.closeDropup,
-					currentUser: that.props.currentUser,
-					owner: theEvent.owner,
-					eventName: theEvent.eventName,
-					eventDesc: theEvent.eventDesc,
-					newMessage: theEvent.newMessage,
-					newRequest: theEvent.newRequest,
-					accessId: accessId,
-					key: i });
+			} else if (theEvent.goersList) {
+				if (theEvent.goersList[that.props.currentUser.id].status == 'approved') {
+					return React.createElement(ApprovedEventDropupView, { closeDropup: that.closeDropup,
+						currentUser: that.props.currentUser,
+						owner: theEvent.owner,
+						eventName: theEvent.eventName,
+						eventDesc: theEvent.eventDesc,
+						newMessage: theEvent.newMessage,
+						newRequest: theEvent.newRequest,
+						accessId: accessId,
+						key: i });
+				}
 			}
 		});
 		return React.createElement(
@@ -33008,6 +33010,7 @@ var MyEvents = React.createClass({
 var OwnerEventDropupView = React.createClass({
 	displayName: 'OwnerEventDropupView',
 
+	// Message notification is buggy!!
 	mixins: [ReactFireMixin],
 	getInitialState: function () {
 		return {
@@ -33093,12 +33096,12 @@ var OwnerEventDropupView = React.createClass({
 var ApprovedEventDropupView = React.createClass({
 	displayName: 'ApprovedEventDropupView',
 
+	// Message notification is buggy!!
 	mixins: [ReactFireMixin],
 	getInitialState: function () {
 		return {
 			isOpen: false,
 			wasButtonClicked: false,
-			newRequest: this.props.newRequest,
 			newMessage: this.props.newMessage
 		};
 	},
@@ -33118,7 +33121,6 @@ var ApprovedEventDropupView = React.createClass({
 				isOpen: true
 			});
 			this.firebaseRefs.eventRef.update({
-				newRequest: false,
 				newMessage: false
 			});
 		}
@@ -33145,14 +33147,6 @@ var ApprovedEventDropupView = React.createClass({
 				'p',
 				null,
 				' New Message! '
-			);
-		}
-
-		if (this.props.newRequest && !this.state.isOpen) {
-			requestNotification = React.createElement(
-				'p',
-				null,
-				' New Request! '
 			);
 		}
 
