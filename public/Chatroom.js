@@ -58,10 +58,12 @@ var Chatroom = React.createClass({
   pushNewNotificationToAll: function() {
     var that = this;
     this.state.firebaseChattersList.map(function(theChatter, i) {
-      var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + that.props.accessId + "/chatroom/chatters/" + theChatter.user.id)
-      ref.update({
-        newMessage: true
-      })   
+      if (theChatter.user.id != that.props.currentUser.id) {
+        var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + that.props.accessId + "/chatroom/chatters/" + theChatter.user.id)
+        ref.update({
+          newMessage: true
+        })   
+      }
     });
   },
 
@@ -181,7 +183,7 @@ var ChatForm = React.createClass({
     // When shift and enter key is pressed
     if (event.shiftKey && event.keyCode === 13) {
       this.sendMessage();
-    } 
+    }
     this.props.setNewMessageToFalse()
   },
   
