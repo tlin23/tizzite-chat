@@ -44,7 +44,9 @@ var PlannerEventDescription = React.createClass({
 				<br/>
 				<GoersList firebaseGoersList={this.state.firebaseGoersList} accessId={this.props.accessId} />
 				<br/>
-				<ChatroomModalView currentUser={this.props.currentUser} owner={this.props.owner} accessId={this.props.accessId} />
+				<ChatroomModalView  currentUser={this.props.currentUser} 
+														owner={this.props.owner} 
+														accessId={this.props.accessId} />
 			</div>
 		)
 	}

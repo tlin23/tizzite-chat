@@ -52,7 +52,9 @@ var GoerEventDescription = React.createClass({
 		if (currentUserStatus == 'approved') {
 			//You are either the owner or you've been accepted as an attendee
 			// show ChatRoomModalView
-			chatroomButton = <ChatroomModalView currentUser={this.props.currentUser} owner={this.props.owner} accessId={this.props.accessId} />;
+			chatroomButton = <ChatroomModalView currentUser={this.props.currentUser} 
+																					owner={this.props.owner} 
+																					accessId={this.props.accessId} />;
 		} else if (currentUserStatus == 'pending' || currentUserStatus == 'denied') {
 			// this means you are a goer who has not been accepted yet, show either request or pending button
 			// if your id is in the requestingList, show pending

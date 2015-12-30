@@ -32553,7 +32553,9 @@ var GoerEventDescription = React.createClass({
 		if (currentUserStatus == 'approved') {
 			//You are either the owner or you've been accepted as an attendee
 			// show ChatRoomModalView
-			chatroomButton = React.createElement(ChatroomModalView, { currentUser: this.props.currentUser, owner: this.props.owner, accessId: this.props.accessId });
+			chatroomButton = React.createElement(ChatroomModalView, { currentUser: this.props.currentUser,
+				owner: this.props.owner,
+				accessId: this.props.accessId });
 		} else if (currentUserStatus == 'pending' || currentUserStatus == 'denied') {
 			// this means you are a goer who has not been accepted yet, show either request or pending button
 			// if your id is in the requestingList, show pending
@@ -33018,7 +33020,8 @@ var OwnerEventDropupView = React.createClass({
 		return {
 			isOpen: false,
 			wasButtonClicked: false,
-			newRequest: this.props.newRequest
+			newRequest: this.props.newRequest,
+			newMessage: this.props.newMessage
 		};
 	},
 
@@ -33058,7 +33061,7 @@ var OwnerEventDropupView = React.createClass({
 	render: function () {
 		var messageNotification;
 		var requestNotification;
-		if (this.props.newMessage && !this.state.isOpen) {
+		if (this.state.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
 				'p',
 				null,
@@ -33066,7 +33069,7 @@ var OwnerEventDropupView = React.createClass({
 			);
 		}
 
-		if (this.props.newRequest && !this.state.isOpen) {
+		if (this.state.newRequest && !this.state.isOpen) {
 			requestNotification = React.createElement(
 				'p',
 				null,
@@ -33329,7 +33332,9 @@ var PlannerEventDescription = React.createClass({
 			React.createElement('br', null),
 			React.createElement(GoersList, { firebaseGoersList: this.state.firebaseGoersList, accessId: this.props.accessId }),
 			React.createElement('br', null),
-			React.createElement(ChatroomModalView, { currentUser: this.props.currentUser, owner: this.props.owner, accessId: this.props.accessId })
+			React.createElement(ChatroomModalView, { currentUser: this.props.currentUser,
+				owner: this.props.owner,
+				accessId: this.props.accessId })
 		);
 	}
 });
