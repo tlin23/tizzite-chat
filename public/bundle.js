@@ -32051,33 +32051,27 @@ var Chatroom = React.createClass({
   getInitialState: function () {
     return {
       fireBaseMessageData: [],
-      firebaseGoersList: []
+      firebaseChattersList: []
     };
   },
 
   componentDidMount: function () {
     this.getLoginRef();
     this.getMessages();
-    this.getGoersList();
-    this.getEvent();
+    this.getChattersList();
     // You can define pollInterval as a Chatroom attribute in ReactDom.render
     // This will invoke getMessages every defined interval
     // setInterval(this.getMessages, this.props.pollInterval);
   },
 
-  getGoersList: function () {
-    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList");
-    this.bindAsArray(ref, "firebaseGoersList");
+  getChattersList: function () {
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters");
+    this.bindAsArray(ref, "firebaseChattersList");
   },
 
   getMessages: function () {
     var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/messages");
     this.bindAsArray(ref, "fireBaseMessageData");
-  },
-
-  getEvent: function () {
-    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
-    this.bindAsObject(ref, "firebaseEvent");
   },
 
   getLoginRef: function () {
@@ -32093,8 +32087,23 @@ var Chatroom = React.createClass({
       userId: this.props.currentUser.id,
       profileImgUrl: this.props.currentUser.profileImageURL
     });
-    this.firebaseRefs.firebaseEvent.update({
-      newMessage: true
+    this.pushNewNotificationToAll();
+  },
+
+  pushNewNotificationToAll: function () {
+    var that = this;
+    this.state.firebaseChattersList.map(function (theChatter, i) {
+      var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + that.props.accessId + "/chatroom/chatters/" + theChatter.user.id);
+      ref.update({
+        newMessage: true
+      });
+    });
+  },
+
+  setNewMessageToFalse: function () {
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters/" + this.props.currentUser.id);
+    ref.update({
+      newMessage: false
     });
   },
 
@@ -32102,14 +32111,14 @@ var Chatroom = React.createClass({
     return React.createElement(
       'div',
       { className: 'chatRoom' },
-      React.createElement(ChatHeader, { owner: this.props.owner, firebaseGoersList: this.state.firebaseGoersList }),
+      React.createElement(ChatHeader, { owner: this.props.owner, firebaseChattersList: this.state.firebaseChattersList }),
       React.createElement(
         'h2',
         null,
         'T-t-t-tizzite! You are a match!'
       ),
       React.createElement(ChatWindow, { currentUserId: this.props.currentUser.id, chatWindowData: this.state.fireBaseMessageData }),
-      React.createElement(ChatForm, { sendMessage: this.sendMessage })
+      React.createElement(ChatForm, { sendMessage: this.sendMessage, setNewMessageToFalse: this.setNewMessageToFalse })
     );
   }
 });
@@ -32119,7 +32128,7 @@ var Chatroom = React.createClass({
 var ChatHeader = React.createClass({
   displayName: 'ChatHeader',
 
-  // Props: owner, firebaseGoersList
+  // Props: owner, firebaseChattersList
   getInitialState: function () {
     return { modalIsOpen: false };
   },
@@ -32131,30 +32140,25 @@ var ChatHeader = React.createClass({
   closeModal: function () {
     this.setState({ modalIsOpen: false });
   },
-  // Props: firebaseGoersList
+  // Props: firebaseChattersList
   // Components: a (name)
   render: function () {
     // Users you are chatting with
     // TODO: have each approved goer and owner show up in the header
     var name = [];
 
-    var goerNodes = this.props.firebaseGoersList.map(function (theGoer, i) {
+    var chatterNodes = this.props.firebaseChattersList.map(function (theChatter, i) {
       return React.createElement(
         'a',
-        { href: theGoer.profileImageURL, key: i },
-        React.createElement('img', { src: theGoer.profileImageURL, style: { width: '36px', height: '36px' } })
+        { href: theChatter.user.profileImageURL, key: i },
+        React.createElement('img', { src: theChatter.user.profileImageURL, style: { width: '36px', height: '36px' } })
       );
     });
 
     return React.createElement(
       'div',
       { className: 'msg-wgt-header' },
-      React.createElement(
-        'a',
-        { href: this.props.owner.profileImageURL },
-        React.createElement('img', { src: this.props.owner.profileImageURL, style: { width: '36px', height: '36px' } })
-      ),
-      goerNodes
+      chatterNodes
     );
   }
 });
@@ -32222,6 +32226,7 @@ var ChatForm = React.createClass({
     if (event.shiftKey && event.keyCode === 13) {
       this.sendMessage();
     }
+    this.props.setNewMessageToFalse();
   },
 
   render: function () {
@@ -32983,7 +32988,7 @@ var MyEvents = React.createClass({
 					owner: theEvent.owner,
 					eventName: theEvent.eventName,
 					eventDesc: theEvent.eventDesc,
-					newMessage: theEvent.newMessage,
+					newMessage: theEvent.chatroom.chatters[that.props.currentUser.id].newMessage,
 					newRequest: theEvent.newRequest,
 					accessId: accessId,
 					key: i });
@@ -32995,7 +33000,7 @@ var MyEvents = React.createClass({
 							owner: theEvent.owner,
 							eventName: theEvent.eventName,
 							eventDesc: theEvent.eventDesc,
-							newMessage: theEvent.newMessage,
+							newMessage: theEvent.chatroom.chatters[that.props.currentUser.id].newMessage,
 							newRequest: theEvent.newRequest,
 							accessId: accessId,
 							key: i });
@@ -33020,8 +33025,7 @@ var OwnerEventDropupView = React.createClass({
 		return {
 			isOpen: false,
 			wasButtonClicked: false,
-			newRequest: this.props.newRequest,
-			newMessage: this.props.newMessage
+			newRequest: this.props.newRequest
 		};
 	},
 
@@ -33040,8 +33044,7 @@ var OwnerEventDropupView = React.createClass({
 				isOpen: true
 			});
 			this.firebaseRefs.eventRef.update({
-				newRequest: false,
-				newMessage: false
+				newRequest: false
 			});
 		}
 	},
@@ -33386,6 +33389,11 @@ var GoersListItem = React.createClass({
 		ref.update({
 			status: 'approved'
 		});
+		var chatterRef = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters/" + this.props.goer.id);
+		chatterRef.update({
+			user: this.props.goer,
+			newMessage: false
+		});
 	},
 
 	deny: function () {
@@ -33479,11 +33487,12 @@ var Tizzite = React.createClass({
 	},
 
 	createChatroom: function (eventKey, owner) {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom");
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom/chatters/" + owner.id);
 		eventChatroomRef = "firebaseChatroomData" + eventKey;
 		this.bindAsObject(ref, eventChatroomRef);
 		this.firebaseRefs[eventChatroomRef].update({
-			owner: owner
+			user: owner,
+			newMessage: false
 		});
 	},
 

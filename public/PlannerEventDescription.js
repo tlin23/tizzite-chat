@@ -96,6 +96,11 @@ var GoersListItem = React.createClass({
 		ref.update({
 			status : 'approved'
 		})
+		var chatterRef = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters/" + this.props.goer.id)
+		chatterRef.update({
+			user: this.props.goer,
+			newMessage: false
+		})
 	},
 
 	deny: function() {

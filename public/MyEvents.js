@@ -24,7 +24,7 @@ var MyEvents = React.createClass({
 																owner={theEvent.owner} 
 																eventName={theEvent.eventName} 
 																eventDesc={theEvent.eventDesc} 
-																newMessage={theEvent.newMessage}
+																newMessage={theEvent.chatroom.chatters[that.props.currentUser.id].newMessage}
 																newRequest={theEvent.newRequest}
 																accessId={accessId} 
 																key={i}/>
@@ -38,7 +38,7 @@ var MyEvents = React.createClass({
 																				owner={theEvent.owner} 
 																				eventName={theEvent.eventName} 
 																				eventDesc={theEvent.eventDesc} 
-																				newMessage={theEvent.newMessage}
+																				newMessage={theEvent.chatroom.chatters[that.props.currentUser.id].newMessage}
 																				newRequest={theEvent.newRequest}
 																				accessId={accessId} 
 																				key={i}/>
@@ -66,7 +66,6 @@ var OwnerEventDropupView = React.createClass({
 			isOpen: false,
 			wasButtonClicked: false,
 			newRequest: this.props.newRequest,
-			newMessage: this.props.newMessage
 		};
 	},
 
@@ -86,7 +85,6 @@ var OwnerEventDropupView = React.createClass({
 			})
 			this.firebaseRefs.eventRef.update({
 				newRequest: false,
-				newMessage: false
 			})
 		}
 	},
@@ -198,8 +196,5 @@ var ApprovedEventDropupView = React.createClass({
 		)
 	}
 })
-
-
-
 
 module.exports = MyEvents

@@ -10,33 +10,27 @@ var Chatroom = React.createClass({
 	getInitialState: function() {
 		return {
 			fireBaseMessageData: [],
-			firebaseGoersList: []
+			firebaseChattersList: []
 		};
 	},
 
   componentDidMount: function() {
     this.getLoginRef();
     this.getMessages();
-    this.getGoersList();
-    this.getEvent();
+    this.getChattersList();
     // You can define pollInterval as a Chatroom attribute in ReactDom.render
     // This will invoke getMessages every defined interval
     // setInterval(this.getMessages, this.props.pollInterval);
   },
 
-	getGoersList: function() {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/goersList")
-		this.bindAsArray(ref, "firebaseGoersList");
+	getChattersList: function() {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters")
+		this.bindAsArray(ref, "firebaseChattersList");
 	},
 
   getMessages: function() {
     var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/messages") 
     this.bindAsArray(ref, "fireBaseMessageData");
-  },
-
-  getEvent: function() {
-    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId) 
-    this.bindAsObject(ref, "firebaseEvent");
   },
 
   getLoginRef: function() {
@@ -52,18 +46,33 @@ var Chatroom = React.createClass({
       userId: this.props.currentUser.id,
       profileImgUrl: this.props.currentUser.profileImageURL
     });
-    this.firebaseRefs.firebaseEvent.update({
-      newMessage: true
+    this.pushNewNotificationToAll()
+  },
+
+  pushNewNotificationToAll: function() {
+    var that = this;
+    this.state.firebaseChattersList.map(function(theChatter, i) {
+      var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + that.props.accessId + "/chatroom/chatters/" + theChatter.user.id)
+      ref.update({
+        newMessage: true
+      })   
+    });
+  },
+
+  setNewMessageToFalse: function() {
+    var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters/" + this.props.currentUser.id)
+    ref.update({
+      newMessage : false
     })
   },
 
 	render: function() {
 		return(
       <div className="chatRoom">
-        <ChatHeader owner={this.props.owner} firebaseGoersList={this.state.firebaseGoersList}/>
+        <ChatHeader owner={this.props.owner} firebaseChattersList={this.state.firebaseChattersList}/>
           <h2>T-t-t-tizzite! You are a match!</h2>
         <ChatWindow currentUserId={this.props.currentUser.id} chatWindowData={this.state.fireBaseMessageData}/>
-        <ChatForm sendMessage={this.sendMessage} />
+        <ChatForm sendMessage={this.sendMessage} setNewMessageToFalse={this.setNewMessageToFalse}/>
       </div>
 		);
 	}
@@ -72,7 +81,7 @@ var Chatroom = React.createClass({
 
 // // Chatroom Header
 var ChatHeader = React.createClass({
-	// Props: owner, firebaseGoersList
+	// Props: owner, firebaseChattersList
 	getInitialState: function() {
     return { modalIsOpen: false };
   },
@@ -84,27 +93,24 @@ var ChatHeader = React.createClass({
   closeModal: function() {
     this.setState({modalIsOpen: false});
   },
-	// Props: firebaseGoersList
+	// Props: firebaseChattersList
 	// Components: a (name)
   render: function() {
     // Users you are chatting with
     // TODO: have each approved goer and owner show up in the header
     var name = [];
 
-    var goerNodes = this.props.firebaseGoersList.map(function(theGoer, i) {
+    var chatterNodes = this.props.firebaseChattersList.map(function(theChatter, i) {
       return (
-        <a href={theGoer.profileImageURL} key={i}>
-					<img src={theGoer.profileImageURL} style={{width: '36px', height: '36px'}}/>
+        <a href={theChatter.user.profileImageURL} key={i}>
+					<img src={theChatter.user.profileImageURL} style={{width: '36px', height: '36px'}}/>
 				</a>
       );    		
     });
 
     return (
       <div className="msg-wgt-header">
-      	<a href={this.props.owner.profileImageURL}>
-					<img src={this.props.owner.profileImageURL} style={{width: '36px', height: '36px'}}/>
-				</a>
-  			{goerNodes}
+  			{chatterNodes}
       </div>
     );
   }
@@ -171,6 +177,7 @@ var ChatForm = React.createClass({
     if (event.shiftKey && event.keyCode === 13) {
       this.sendMessage();
     } 
+    this.props.setNewMessageToFalse()
   },
   
   render: function() {

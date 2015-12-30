@@ -52,11 +52,12 @@ var Tizzite = React.createClass({
   },
 
 	createChatroom: function(eventKey, owner) {
-		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom")
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + eventKey + "/chatroom/chatters/" + owner.id )
 		eventChatroomRef = "firebaseChatroomData" + eventKey
 		this.bindAsObject(ref, eventChatroomRef);
 		this.firebaseRefs[eventChatroomRef].update({
-			owner: owner
+			user: owner,
+			newMessage: false
 		})
 	},
 
