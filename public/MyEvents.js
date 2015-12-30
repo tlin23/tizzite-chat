@@ -86,6 +86,7 @@ var OwnerEventDropupView = React.createClass({
 			})
 			this.firebaseRefs.eventRef.update({
 				newRequest: false,
+				newMessage: false
 			})
 		}
 	},
@@ -106,11 +107,11 @@ var OwnerEventDropupView = React.createClass({
 	render: function() {
 		var messageNotification;
 		var requestNotification;
-		if (this.state.newMessage && !this.state.isOpen) {
+		if (this.props.newMessage && !this.state.isOpen) {
 			messageNotification = <p> New Message! </p>
 		}
 
-		if (this.state.newRequest && !this.state.isOpen){
+		if (this.props.newRequest && !this.state.isOpen){
 			requestNotification = <p> New Request! </p>
 		}
 

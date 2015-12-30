@@ -33040,7 +33040,8 @@ var OwnerEventDropupView = React.createClass({
 				isOpen: true
 			});
 			this.firebaseRefs.eventRef.update({
-				newRequest: false
+				newRequest: false,
+				newMessage: false
 			});
 		}
 	},
@@ -33061,7 +33062,7 @@ var OwnerEventDropupView = React.createClass({
 	render: function () {
 		var messageNotification;
 		var requestNotification;
-		if (this.state.newMessage && !this.state.isOpen) {
+		if (this.props.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
 				'p',
 				null,
@@ -33069,7 +33070,7 @@ var OwnerEventDropupView = React.createClass({
 			);
 		}
 
-		if (this.state.newRequest && !this.state.isOpen) {
+		if (this.props.newRequest && !this.state.isOpen) {
 			requestNotification = React.createElement(
 				'p',
 				null,
