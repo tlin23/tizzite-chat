@@ -106,18 +106,18 @@ var OwnerEventDropupView = React.createClass({
 		var messageNotification;
 		var requestNotification;
 		if (this.props.newMessage && !this.state.isOpen) {
-			messageNotification = <p> New Message! </p>
+			messageNotification = <div className='message-notification'> <p> New Message! </p> </div>
 		}
 
 		if (this.props.newRequest && !this.state.isOpen){
-			requestNotification = <p> New Request! </p>
+			requestNotification = <div className='request-notification'> <p> New Request! </p> </div>
 		}
 
 		return(
-			<div className='eventDropupView'>
+			<div className='ownerEventDropupView'>
 				{messageNotification}
 				{requestNotification}
-				<DropdownButton open={this.state.isOpen} onToggle={this.openDropup} onClick={this.handleOnClick} title={this.props.eventName} dropup noCaret id="split-button-dropup">
+				<DropdownButton className='owner-dropdown-button' open={this.state.isOpen} onToggle={this.openDropup} onClick={this.handleOnClick} title={this.props.eventName} dropup noCaret id="split-button-dropup">
 					<button className='glyphicon glyphicon-remove-circle' onClick={this.closeDropup}></button>
 					<PlannerEventDescription  currentUser={this.props.currentUser} 
 																		owner={this.props.owner} 
@@ -178,13 +178,13 @@ var ApprovedEventDropupView = React.createClass({
 		var messageNotification;
 		var requestNotification;
 		if (this.props.newMessage && !this.state.isOpen) {
-			messageNotification = <p> New Message! </p>
+			messageNotification = <div className='message-notification'> <p> New Message! </p> </div>
 		}
 
 		return(
-			<div className='eventDropupView'>
+			<div className='goerEventDropupView'>
 				{messageNotification}
-				<DropdownButton open={this.state.isOpen} onToggle={this.openDropup} onClick={this.handleOnClick} title={this.props.eventName} dropup noCaret id="split-button-dropup">
+				<DropdownButton className='goer-dropdown-button' open={this.state.isOpen} onToggle={this.openDropup} onClick={this.handleOnClick} title={this.props.eventName} dropup noCaret id="split-button-dropup">
 					<button className='glyphicon glyphicon-remove-circle' onClick={this.closeDropup}></button>
 					<GoerEventDescription     currentUser={this.props.currentUser} 
 																		owner={this.props.owner} 

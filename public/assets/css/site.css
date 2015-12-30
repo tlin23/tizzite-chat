@@ -4,17 +4,36 @@ html, body {
   background-color: #ebd0ff;
 }
 
+.message-notification {
+  background-color: #ff0000;
+  color: #fff;
+}
+
+.request-notification {
+  background-color: #ff0000;
+  color: #fff;
+}
+
 .eventNavBar {
   position: fixed;
   bottom: 0;
   width : 95%;
 }
 
-.eventDropupView {
+.ownerEventDropupView {
   position: relative;
   float: right;
   padding-left: 5px;
-  padding-right
+  padding-right;
+  border : 3px solid #000;
+}
+
+.goerEventDropupView {
+  position: relative;
+  float: right;
+  padding-left: 5px;
+  padding-right;
+  border : 3px solid #663;
 }
 
 .searchbox-wrapper {

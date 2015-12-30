@@ -33074,28 +33074,40 @@ var OwnerEventDropupView = React.createClass({
 		var requestNotification;
 		if (this.props.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
-				'p',
-				null,
-				' New Message! '
+				'div',
+				{ className: 'message-notification' },
+				' ',
+				React.createElement(
+					'p',
+					null,
+					' New Message! '
+				),
+				' '
 			);
 		}
 
 		if (this.props.newRequest && !this.state.isOpen) {
 			requestNotification = React.createElement(
-				'p',
-				null,
-				' New Request! '
+				'div',
+				{ className: 'request-notification' },
+				' ',
+				React.createElement(
+					'p',
+					null,
+					' New Request! '
+				),
+				' '
 			);
 		}
 
 		return React.createElement(
 			'div',
-			{ className: 'eventDropupView' },
+			{ className: 'ownerEventDropupView' },
 			messageNotification,
 			requestNotification,
 			React.createElement(
 				DropdownButton,
-				{ open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
+				{ className: 'owner-dropdown-button', open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
 				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeDropup }),
 				React.createElement(PlannerEventDescription, { currentUser: this.props.currentUser,
 					owner: this.props.owner,
@@ -33158,19 +33170,25 @@ var ApprovedEventDropupView = React.createClass({
 		var requestNotification;
 		if (this.props.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
-				'p',
-				null,
-				' New Message! '
+				'div',
+				{ className: 'message-notification' },
+				' ',
+				React.createElement(
+					'p',
+					null,
+					' New Message! '
+				),
+				' '
 			);
 		}
 
 		return React.createElement(
 			'div',
-			{ className: 'eventDropupView' },
+			{ className: 'goerEventDropupView' },
 			messageNotification,
 			React.createElement(
 				DropdownButton,
-				{ open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
+				{ className: 'goer-dropdown-button', open: this.state.isOpen, onToggle: this.openDropup, onClick: this.handleOnClick, title: this.props.eventName, dropup: true, noCaret: true, id: 'split-button-dropup' },
 				React.createElement('button', { className: 'glyphicon glyphicon-remove-circle', onClick: this.closeDropup }),
 				React.createElement(GoerEventDescription, { currentUser: this.props.currentUser,
 					owner: this.props.owner,
