@@ -33030,17 +33030,24 @@ var OwnerEventDropupView = React.createClass({
 		return {
 			isOpen: false,
 			wasButtonClicked: false,
-			newRequest: this.props.newRequest
+			newRequest: this.props.newRequest,
+			firebaseNewMessage: false
 		};
 	},
 
 	componentDidMount: function () {
 		this.getEventRef();
+		this.getNewMessageRef();
 	},
 
 	getEventRef: function () {
 		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId);
 		this.bindAsObject(ref, "eventRef");
+	},
+
+	getNewMessageRef: function () {
+		var ref = new Firebase("https://tizzite-chat.firebaseio.com/events/" + this.props.accessId + "/chatroom/chatters/" + this.props.currentUser.id);
+		this.bindAsObject(ref, "firebaseNewMessage");
 	},
 
 	openDropup: function (e) {
@@ -33070,7 +33077,7 @@ var OwnerEventDropupView = React.createClass({
 	render: function () {
 		var messageNotification;
 		var requestNotification;
-		if (this.props.newMessage && !this.state.isOpen) {
+		if (this.state.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
 				'p',
 				null,
@@ -33078,7 +33085,7 @@ var OwnerEventDropupView = React.createClass({
 			);
 		}
 
-		if (this.props.newRequest && !this.state.isOpen) {
+		if (this.state.newRequest && !this.state.isOpen) {
 			requestNotification = React.createElement(
 				'p',
 				null,
@@ -33153,8 +33160,7 @@ var ApprovedEventDropupView = React.createClass({
 
 	render: function () {
 		var messageNotification;
-		var requestNotification;
-		if (this.props.newMessage && !this.state.isOpen) {
+		if (this.state.newMessage && !this.state.isOpen) {
 			messageNotification = React.createElement(
 				'p',
 				null,
