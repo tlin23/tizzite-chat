@@ -62,7 +62,8 @@ var LoginModal = React.createClass({
   	return (
   		<div className='loginModal'>
 	  		<p onClick={this.openModal}> LOG IN </p>
-	      <Modal
+	      <Modal 
+	      	className='login-modal'
 	        isOpen={this.state.modalIsOpen}
 	        style={MODALSTYLES} >
 

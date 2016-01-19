@@ -166,6 +166,7 @@ var Tizzite = React.createClass({
   },
 
 	render: function() {
+
 		if (this.state.isLoggedIn == false) {
 			return (
 				<div className="chatClient">

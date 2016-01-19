@@ -4,6 +4,20 @@ html, body {
   background-color: #ebd0ff;
 }
 
+.image-gallery {
+  width: 75%;
+  height: 75%;
+  margin-right: auto;
+  margin-left: auto;
+  z-index: -1;
+}
+
+.dream {
+  font-family: 'blackjack';
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .message-notification {
   background-color: #ff0000;
   color: #fff;
